@@ -1,0 +1,2267 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>SUPER ADVENTURE — Lumi's Treasure Trail</title>
+<style>
+:root{
+  color-scheme:dark;
+  font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;width:100%;height:100%;overflow:hidden;
+  background:#091a2b;overscroll-behavior:none;
+}
+body{
+  display:grid;place-items:center;
+  background:radial-gradient(ellipse at top,#22455d,#081421 75%);
+}
+button{font:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:3px solid #fff;outline-offset:4px}
+button:disabled{cursor:not-allowed;opacity:.48}
+[hidden]{display:none!important}
+#game{
+  width:min(100vw,177.7778dvh);
+  height:min(56.25vw,100dvh);
+  position:relative;overflow:hidden;
+  background:#8de2ee;
+  box-shadow:0 20px 100px #0008;
+  isolation:isolate;
+}
+#canvas{width:100%;height:100%;display:block;touch-action:none}
+#hud{
+  position:absolute;inset:12px 14px auto;
+  display:flex;justify-content:space-between;gap:8px;
+  align-items:flex-start;pointer-events:none;z-index:3;
+}
+.hudGroup{display:flex;gap:7px;flex-wrap:wrap}
+.pill{
+  background:#123044db;border:1px solid #ffffff38;
+  box-shadow:0 4px 0 #071b2930,0 7px 20px #15394b24;
+  backdrop-filter:blur(12px);
+  border-radius:15px;padding:8px 12px;
+  color:#fff;font-weight:800;font-size:14px;
+  white-space:nowrap;
+}
+#hearts{color:#ff8291;letter-spacing:3px}
+#power{color:#aaffda;font-size:12px}
+.icon{
+  pointer-events:auto;
+  border:1px solid #ffffff4a;border-radius:13px;
+  min-width:40px;min-height:38px;
+  background:#15384ad9;color:white;font-weight:900;
+}
+.icon:hover{background:#27617c}
+#toast{
+  position:absolute;top:74px;left:50%;transform:translateX(-50%);
+  padding:9px 18px;border-radius:30px;
+  background:#15354de8;color:white;font-weight:700;
+  font-size:14px;max-width:88%;text-align:center;
+  opacity:0;transition:opacity .18s;z-index:4;pointer-events:none;
+}
+#toast.show{opacity:1}
+.screen{
+  position:absolute;inset:0;z-index:5;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#092b458c,#12344433);
+  padding:18px;overflow:auto;
+}
+.panel{
+  width:min(690px,94%);padding:26px;
+  text-align:center;border-radius:27px;
+  color:#fff;background:linear-gradient(145deg,#173e53f2,#0c263ceb);
+  border:1px solid #c7f8ff4d;
+  box-shadow:0 25px 70px #031c4b60,inset 0 1px #ffffff26;
+}
+.kicker{letter-spacing:3px;font-size:11px;font-weight:900;color:#a8f5dc}
+h1{
+  margin:8px 0 0;font-size:clamp(28px,6vw,64px);line-height:.95;
+  letter-spacing:-2px;font-weight:1000;
+  color:#fff3a0;text-shadow:0 4px #c27729,0 8px 24px #0005;
+}
+.subtitle{color:#b3e8ee;font-size:14px;line-height:1.6}
+h2{margin:6px 0 12px;font-size:30px}
+.actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+.btn{
+  border:0;border-radius:14px;padding:13px 23px;
+  color:#173640;font-weight:900;
+  background:linear-gradient(#ffec91,#ffc75e);
+  box-shadow:0 5px 0 #bc792f,0 9px 20px #0003;
+  transition:transform .12s,filter .12s;
+}
+.btn:hover{filter:brightness(1.08);transform:translateY(-2px)}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #bc792f}
+.btn.secondary{
+  color:white;background:linear-gradient(#327c91,#24526c);
+  box-shadow:0 5px 0 #102c43;
+}
+.hint{font-size:12px;line-height:1.7;color:#a9c7d9;margin:20px 0 0}
+#cards{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:12px;margin-top:18px;
+}
+.card{
+  padding:0 0 10px;overflow:hidden;border-radius:15px;
+  color:white;background:#24485c;border:1px solid #ffffff33;
+  text-align:left;transition:transform .15s;
+}
+.card:hover:not(:disabled){transform:translateY(-4px)}
+.card canvas{width:100%;aspect-ratio:2/1;display:block}
+.card b,.card small{display:block;padding:5px 10px 0}
+.card b{font-size:12px}
+.card small{font-size:10px;color:#c8e9ef}
+#resultStars{font-size:52px;color:#ffd768;letter-spacing:8px}
+#resultText{white-space:pre-line;line-height:1.8;color:#c7e5ec}
+#touch{
+  position:absolute;inset:auto 15px 13px;z-index:4;
+  display:flex;justify-content:space-between;align-items:end;
+  pointer-events:none;
+}
+.pad{display:flex;gap:12px}
+.touchButton{
+  width:61px;height:58px;border-radius:19px;
+  border:2px solid #ffffff65;
+  background:#14354e82;color:white;font-size:26px;font-weight:900;
+  backdrop-filter:blur(6px);
+  box-shadow:0 4px 0 #09253788;
+  pointer-events:auto;touch-action:none;user-select:none;
+  -webkit-user-select:none;
+}
+.touchButton.jump{
+  width:81px;height:71px;border-radius:27px;
+  color:#4e3918;background:#ffe18cbb;font-size:16px;
+}
+.touchButton.pressed{background:#ffffffb0;transform:translateY(3px)}
+#transition{
+  position:absolute;inset:0;background:#b8fff0;
+  pointer-events:none;z-index:9;opacity:0;
+}
+@media (pointer:fine){#touch{opacity:.25}#touch:hover{opacity:1}}
+@media (max-width:650px){
+  #hud{inset:6px 7px auto;gap:4px}
+  .pill{font-size:10px;padding:5px 7px;border-radius:10px}
+  .hudGroup{gap:4px}
+  .icon{min-width:30px;min-height:28px;font-size:12px;border-radius:9px}
+  #power{font-size:9px}
+  #toast{top:50px;font-size:10px;padding:6px 12px}
+  .panel{padding:15px;border-radius:18px}
+  h2{font-size:21px}
+  .subtitle{font-size:11px}
+  .btn{padding:9px 15px;font-size:12px}
+  .actions{margin-top:12px;gap:9px}
+  .hint{margin-top:12px;font-size:10px}
+  #cards{gap:8px;margin-top:10px}
+  .card b{font-size:10px}
+  .card small{font-size:8px}
+  .touchButton{width:45px;height:43px;font-size:20px;border-radius:14px}
+  .touchButton.jump{width:58px;height:52px;font-size:12px;border-radius:19px}
+  #touch{inset:auto 10px 8px}
+  #resultStars{font-size:32px}
+  #resultText{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important}
+}
+
+/* หน้าแรก: แสดงวิธีเล่นก่อนปุ่มเริ่มเกม */
+#home {
+  overflow: hidden;
+}
+
+.homePanel {
+  max-height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.homePanel > .kicker,
+.homePanel > h1,
+.homePanel > .subtitle,
+.homePanel > .actions {
+  flex-shrink: 0;
+}
+
+.homePanel h1 {
+  font-size: clamp(28px, 4.8vw, 46px);
+}
+
+.homePanel .subtitle {
+  margin: 10px 0 12px;
+}
+
+.howToPlay {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+
+  padding: 14px 18px;
+  border: 1px solid #c7f8ff30;
+  border-radius: 16px;
+  background: #061d3290;
+  text-align: left;
+
+  scrollbar-width: thin;
+  scrollbar-color: #78cbb9 #102b40;
+}
+
+.howToPlay:focus-visible {
+  outline: 2px solid #a8f5dc;
+  outline-offset: -3px;
+}
+
+.howToPlay h3 {
+  margin: 0 0 10px;
+  color: #ffe393;
+  font-size: 16px;
+}
+
+.playGuide {
+  margin: 0;
+  padding-left: 20px;
+  color: #d8edf4;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.playGuide li {
+  padding-bottom: 6px;
+}
+
+.playGuide li::marker {
+  color: #91e8c5;
+}
+
+.playGuide strong {
+  color: #fff1b5;
+}
+
+.guideNote {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #ffffff20;
+  color: #aed1df;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.homePanel .actions {
+  margin-top: 14px;
+  padding-bottom: 5px;
+}
+
+/* ลดพื้นที่ส่วนหัวบนหน้าจอเล็ก */
+@media (max-width: 650px) {
+  #home {
+    padding: 8px;
+  }
+
+  .homePanel {
+    width: 98%;
+    padding: 12px;
+  }
+
+  .homePanel h1 {
+    font-size: 26px;
+  }
+
+  .homePanel .kicker {
+    font-size: 9px;
+  }
+
+  .homePanel .subtitle {
+    margin: 6px 0 8px;
+    font-size: 10px;
+  }
+
+  .howToPlay {
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+
+  .howToPlay h3 {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .playGuide {
+    font-size: 11px;
+  }
+
+  .guideNote {
+    font-size: 10px;
+  }
+
+  .homePanel .actions {
+    margin-top: 9px;
+  }
+}
+
+/* ==================================================
+   RESPONSIVE MENU FIX
+   หน้าแรก / เลือกด่านเต็มหน้าจอบนมือถือ
+   ไม่เปลี่ยนขนาดพื้นที่ Gameplay
+   ================================================== */
+
+@media (max-width: 900px), (max-height: 600px) {
+  #game.menuLayout {
+    width: 100vw;
+
+    /* สำรองสำหรับเบราว์เซอร์ที่ยังไม่รองรับ dvh */
+    height: 100vh;
+    height: 100dvh;
+
+    max-width: none;
+    max-height: none;
+    margin: 0;
+  }
+
+  /* พื้นหลังเมนูครอบเต็มกรอบโดยไม่ยืดภาพผิดสัดส่วน */
+  #game.menuLayout #canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* ใช้พื้นที่เลื่อนเพียงชั้นเดียว */
+  #game.menuLayout #home,
+  #game.menuLayout #selection {
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+
+    padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    padding-right: max(16px, env(safe-area-inset-right));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
+
+    scroll-padding-block: 20px;
+  }
+
+  /* ถ้าเนื้อหาสั้นให้อยู่กลางจอ
+     ถ้ายาวให้เริ่มด้านบนและเลื่อนได้ */
+  #game.menuLayout #home .homePanel,
+  #game.menuLayout #selection .panel {
+    flex: 0 0 auto;
+    display: block;
+
+    width: 100%;
+    max-width: 640px;
+    max-height: none;
+    min-height: auto;
+
+    margin-block: auto;
+    padding: 22px 18px;
+    border-radius: 22px;
+    overflow: visible;
+  }
+
+  #game.menuLayout .homePanel .kicker {
+    font-size: 10px;
+    letter-spacing: 2px;
+    line-height: 1.5;
+  }
+
+  #game.menuLayout .homePanel h1 {
+    margin-top: 12px;
+    font-size: clamp(32px, 9vw, 54px);
+    line-height: 1.02;
+    letter-spacing: -1px;
+  }
+
+  #game.menuLayout .homePanel .subtitle {
+    margin: 16px 0;
+    font-size: 14px;
+    line-height: 1.75;
+    overflow-wrap: anywhere;
+  }
+
+  /* ยกเลิกกรอบคำแนะนำที่เลื่อนซ้อนอยู่ในหน้า */
+  #game.menuLayout .howToPlay {
+    display: block;
+    flex: none;
+
+    height: auto;
+    max-height: none;
+    min-height: auto;
+
+    overflow: visible;
+    padding: 16px;
+    border-radius: 15px;
+
+    touch-action: pan-y;
+  }
+
+  #game.menuLayout .howToPlay h3 {
+    margin: 0 0 12px;
+    font-size: 17px;
+    line-height: 1.5;
+  }
+
+  #game.menuLayout .playGuide {
+    margin: 0;
+    padding-left: 20px;
+
+    font-size: 14px;
+    line-height: 1.85;
+    overflow-wrap: anywhere;
+  }
+
+  #game.menuLayout .playGuide li {
+    padding-bottom: 10px;
+  }
+
+  #game.menuLayout .playGuide li:last-child {
+    padding-bottom: 0;
+  }
+
+  #game.menuLayout .guideNote {
+    margin-top: 14px;
+    padding-top: 12px;
+
+    font-size: 13px;
+    line-height: 1.8;
+  }
+
+  /* ปุ่มขนาดกดง่าย ไม่บีบให้อยู่บรรทัดเดียว */
+  #game.menuLayout .actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+
+    width: 100%;
+    margin-top: 20px;
+    padding-bottom: 5px;
+  }
+
+  #game.menuLayout .actions .btn {
+    width: 100%;
+    min-height: 48px;
+
+    padding: 13px 18px;
+    border-radius: 14px;
+
+    font-size: 15px;
+    line-height: 1.4;
+    white-space: normal;
+  }
+
+  /* หน้าเลือกด่านบนมือถือ */
+  #game.menuLayout #cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  #game.menuLayout .card {
+    min-width: 0;
+  }
+
+  #game.menuLayout .card b {
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  #game.menuLayout .card small {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+}
+
+/* มือถือจอเล็กมาก */
+@media (max-width: 360px) {
+  #game.menuLayout #home,
+  #game.menuLayout #selection {
+    padding-inline: 10px;
+  }
+
+  #game.menuLayout #home .homePanel,
+  #game.menuLayout #selection .panel {
+    padding: 18px 12px;
+  }
+
+  #game.menuLayout .howToPlay {
+    padding: 12px;
+  }
+
+  #game.menuLayout .playGuide {
+    font-size: 13px;
+  }
+}
+
+/* มือถือแนวนอน / จอที่มีความสูงน้อย */
+@media (orientation: landscape) and (max-height: 600px) {
+  #game.menuLayout .homePanel h1 {
+    font-size: 34px;
+    line-height: 1.1;
+  }
+
+  #game.menuLayout .homePanel h1 br {
+    display: none;
+  }
+
+  /* เติมช่องว่างเมื่อชื่อเกมแสดงบรรทัดเดียว */
+  #game.menuLayout .homePanel h1 br::after {
+    content: " ";
+  }
+
+  #game.menuLayout .actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #game.menuLayout #cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+</style>
+</head>
+<body>
+<main id="game" class="menuLayout" aria-label="SUPER ADVENTURE">
+  <canvas id="canvas" aria-label="พื้นที่เล่นเกม"></canvas>
+
+  <div id="hud" hidden>
+    <div class="hudGroup">
+      <span class="pill" id="hearts">♥ ♥ ♥</span>
+      <span class="pill" id="score">คะแนน 0</span>
+      <span class="pill" id="coins">● 0</span>
+      <span class="pill" id="timer">เวลา 180</span>
+      <span class="pill" id="power" hidden></span>
+    </div>
+    <div class="hudGroup">
+      <button class="icon" id="pauseBtn" aria-label="พักเกม">Ⅱ</button>
+      <button class="icon" id="restartBtn" aria-label="เริ่มด่านใหม่">↻</button>
+      <button class="icon" id="soundBtn" aria-label="เปิดหรือปิดเสียง">♪</button>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <section class="screen" id="home">
+  <div class="panel homePanel">
+    <div class="kicker">LUMI'S TREASURE TRAIL</div>
+    <h1>SUPER <br>ADVENTURE</h1>
+
+    <p class="subtitle">
+      ออกเดินทางกับ “ลูมิ” นักสำรวจหางฟู<br>
+      เก็บสมบัติ ข้ามหุบเขา และค้นพบความลับในโลกทั้งห้า
+    </p>
+
+    <div class="howToPlay"
+         role="region"
+         aria-labelledby="howToTitle"
+         tabindex="0">
+      <h3 id="howToTitle">วิธีเล่นและเคล็ดลับ</h3>
+
+      <ul class="playGuide">
+        <li>
+          <strong>เดินซ้าย–ขวา:</strong>
+          ใช้ปุ่ม A / D หรือ ← / → บนคอมพิวเตอร์
+          ส่วนมือถือใช้ปุ่มทิศทางบนหน้าจอ
+        </li>
+        <li>
+          <strong>กระโดด:</strong>
+          กด Space หรือปุ่ม JUMP บนมือถือ
+          กดค้างเพื่อกระโดดสูงขึ้นและข้ามช่องว่างไกลขึ้น
+        </li>
+        <li>
+          <strong>เก็บสมบัติ:</strong>
+          เก็บเหรียญ เพชร ดาว และหีบสมบัติเพื่อเพิ่มคะแนน
+          ลองสำรวจแท่นสูงเพื่อค้นหาพื้นที่ลับ
+        </li>
+        <li>
+          <strong>รับมือศัตรู:</strong>
+          กระโดดเหยียบด้านบนเพื่อกำจัด
+          ระวังการชนด้านข้าง สิ่งกีดขวาง และการตกเหว
+        </li>
+        <li>
+          <strong>บล็อกลับและแท่นกระโดด:</strong>
+          กระโดดชนประกายเล็ก ๆ จากด้านล่างเพื่อเปิดบล็อกลับ
+          ส่วนแท่นสีชมพูจะช่วยดีดตัวให้สูงขึ้น
+        </li>
+        <li>
+          <strong>พลังพิเศษ:</strong>
+          สัญลักษณ์สายฟ้าช่วยให้วิ่งเร็ว
+          ลูกศรขึ้นช่วยให้กระโดดสูง
+          และโล่ช่วยป้องกันการชนหนึ่งครั้งก่อนหมดเวลา
+        </li>
+        <li>
+          <strong>หัวใจและ Checkpoint:</strong>
+          เริ่มต้นด้วยหัวใจ 3 ดวง
+          เดินผ่านธงบนพื้นเพื่อบันทึกจุดเกิดใหม่
+          เมื่อเสียหัวใจจะกลับไปยังจุดที่บันทึกไว้
+        </li>
+        <li>
+          <strong>ผ่านด่าน:</strong>
+          ไปถึงประตู FINISH ก่อนหมดเวลาเพื่อปลดล็อกด่านถัดไป
+          ด่านสุดท้ายต้องกระโดดเหยียบบอสให้ครบ 5 ครั้ง
+          พร้อมหลบคลื่นที่เคลื่อนบนพื้น
+        </li>
+        <li>
+          <strong>รับดาวผลงาน:</strong>
+          เก็บสมบัติให้มาก รักษาหัวใจ และผ่านด่านให้เร็ว
+          เพื่อรับดาวสูงสุด 3 ดาว
+        </li>
+      </ul>
+
+      <p class="guideNote">
+        พักเกมได้ด้วย P / Esc หรือปุ่ม Ⅱ
+        · ปุ่ม ↻ เริ่มด่านใหม่
+        · ปุ่ม ♪ เปิด–ปิดเสียง
+      </p>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="startBtn">START GAME</button>
+      <button class="btn secondary" id="selectBtn">เลือกด่าน</button>
+    </div>
+  </div>
+</section>
+
+  <section class="screen" id="selection" hidden>
+    <div class="panel">
+      <div class="kicker">CHOOSE YOUR ADVENTURE</div>
+      <h2>แผนที่การผจญภัย</h2>
+      <div id="cards"></div>
+      <div class="actions">
+        <button class="btn secondary" id="backBtn">กลับหน้าแรก</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="paused" hidden>
+    <div class="panel" style="max-width:430px">
+      <div class="kicker">TAKE A LITTLE BREAK</div>
+      <h2>พักผจญภัยสักครู่</h2>
+      <p class="subtitle">เวลาและการเคลื่อนไหวหยุดอยู่ จนกว่าจะเล่นต่อ</p>
+      <div class="actions">
+        <button class="btn" id="resumeBtn">เล่นต่อ</button>
+        <button class="btn secondary" id="pauseRestart">เริ่มใหม่</button>
+        <button class="btn secondary" id="pauseHome">หน้าแรก</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="result" hidden>
+    <div class="panel" style="max-width:500px">
+      <div class="kicker" id="resultKicker">ADVENTURE COMPLETE</div>
+      <h2 id="resultTitle">ผ่านด่าน!</h2>
+      <div id="resultStars"></div>
+      <p id="resultText"></p>
+      <div class="actions">
+        <button class="btn" id="nextBtn">ด่านถัดไป</button>
+        <button class="btn secondary" id="retryBtn">เล่นอีกครั้ง</button>
+        <button class="btn secondary" id="resultMap">เลือกด่าน</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="touch" hidden>
+    <div class="pad">
+      <button class="touchButton" data-control="left" aria-label="เดินซ้าย">◀</button>
+      <button class="touchButton" data-control="right" aria-label="เดินขวา">▶</button>
+    </div>
+    <button class="touchButton jump" data-control="jump" aria-label="กระโดด">JUMP</button>
+  </div>
+  <div id="transition"></div>
+</main>
+
+<script>
+"use strict";
+
+/* =========================================================
+   SUPER ADVENTURE
+   Standalone Canvas game / no external assets or libraries
+   World units: pixels. Physics: fixed 120 Hz.
+   ========================================================= */
+
+const $ = id => document.getElementById(id);
+const canvas = $("canvas");
+const ctx = canvas.getContext("2d");
+const W = 960, H = 540, FLOOR = 430, WORLD_WIDTH = 5240;
+const clamp = (n,a,b) => Math.max(a,Math.min(b,n));
+const lerp = (a,b,t) => a+(b-a)*t;
+const overlap = (a,b) =>
+  a.x < b.x+b.w && a.x+a.w > b.x &&
+  a.y < b.y+b.h && a.y+a.h > b.y;
+
+const THEMES = [
+  {
+    name:"Green Forest", thai:"ป่าเขียวสดใส",
+    sky:["#67cddd","#d2fff0"], mountain:"#7ebba7",
+    far:"#369d90", tree:"#25866a", leaf:"#55c87a",
+    top:"#8de477", dirt:"#ac7950", deep:"#634b42",
+    accent:"#ffe084", enemy:"#91cb6f", kind:"forest"
+  },
+  {
+    name:"Candy World", thai:"ดินแดนขนมหวาน",
+    sky:["#b79fe8","#ffe3f0"], mountain:"#e6a4cf",
+    far:"#d885b7", tree:"#d677a6", leaf:"#ffc6dd",
+    top:"#ffecfa", dirt:"#c88aab", deep:"#8d547d",
+    accent:"#9cf4ec", enemy:"#fca6d3", kind:"candy"
+  },
+  {
+    name:"Crystal Cave", thai:"ถ้ำคริสตัล",
+    sky:["#151b42","#4f5a89"], mountain:"#35385f",
+    far:"#44426f", tree:"#596298", leaf:"#9feeff",
+    top:"#a4c9ed", dirt:"#555781", deep:"#2c2b49",
+    accent:"#85f5ff", enemy:"#9896ec", kind:"cave"
+  },
+  {
+    name:"Sky Kingdom", thai:"อาณาจักรบนท้องฟ้า",
+    sky:["#6eafe9","#e5f5ff"], mountain:"#a6c2f0",
+    far:"#a5d5ee", tree:"#cedcfc", leaf:"#ffffff",
+    top:"#f3fbff", dirt:"#a5b8d7", deep:"#6d85b1",
+    accent:"#ffdf8d", enemy:"#c0eafb", kind:"sky"
+  },
+  {
+    name:"Lava Castle", thai:"ปราสาทลาวา",
+    sky:["#382f50","#dc7d67"], mountain:"#785068",
+    far:"#704556", tree:"#55404f", leaf:"#ee9e78",
+    top:"#ba8e86", dirt:"#695160", deep:"#332b40",
+    accent:"#ffc36b", enemy:"#a78690", kind:"lava"
+  }
+];
+
+let state = "home";
+let world = null;
+let player = null;
+let levelIndex = 0;
+let camera = 0;
+let screenShake = 0;
+let toastTime = 0;
+let transitionAlpha = 0;
+let menuTime = 0;
+let uiClock = 0;
+let fireworks = [];
+let fireworkClock = 0;
+
+const STORAGE_KEY = "lumi.super-adventure.v1";
+let save = {
+  unlocked:1,
+  best:[0,0,0,0,0],
+  stars:[0,0,0,0,0],
+  sound:true
+};
+let storageAvailable = true;
+try {
+  const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+  if (stored && typeof stored === "object") {
+    save.unlocked = clamp(Number(stored.unlocked)||1,1,5);
+    for (let i=0;i<5;i++) {
+      save.best[i] = Math.max(0,Number(stored.best?.[i])||0);
+      save.stars[i] = clamp(Number(stored.stars?.[i])||0,0,3);
+    }
+    save.sound = stored.sound !== false;
+  }
+} catch (_) { storageAvailable = false; }
+
+function persist(){
+  try { localStorage.setItem(STORAGE_KEY,JSON.stringify(save)); }
+  catch (_) { storageAvailable = false; }
+}
+
+function resize(){
+  const dpr = Math.min(window.devicePixelRatio || 1,2);
+  canvas.width = Math.round(W*dpr);
+  canvas.height = Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+window.addEventListener("resize",resize);
+resize();
+
+/* -------------------- drawing helpers -------------------- */
+
+function round(c,x,y,w,h,r,fill,stroke=null){
+  c.beginPath();
+  c.roundRect(x,y,w,h,r);
+  if(fill){c.fillStyle=fill;c.fill();}
+  if(stroke){c.strokeStyle=stroke;c.stroke();}
+}
+function ellipse(c,x,y,rx,ry,fill){
+  c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);
+  c.fillStyle=fill;c.fill();
+}
+function path(c,points,fill,stroke=null){
+  c.beginPath();c.moveTo(points[0][0],points[0][1]);
+  for(let i=1;i<points.length;i++) c.lineTo(points[i][0],points[i][1]);
+  c.closePath();
+  if(fill){c.fillStyle=fill;c.fill();}
+  if(stroke){c.strokeStyle=stroke;c.stroke();}
+}
+function gradient(c,x,y,w,h,a,b){
+  const g=c.createLinearGradient(x,y,x+w,y+h);
+  g.addColorStop(0,a);g.addColorStop(1,b);return g;
+}
+function star(c,x,y,r,color,rotation=0){
+  const points=[];
+  for(let i=0;i<10;i++){
+    const a=-Math.PI/2+i*Math.PI/5+rotation;
+    const q=i%2?r*.46:r;
+    points.push([x+Math.cos(a)*q,y+Math.sin(a)*q]);
+  }
+  path(c,points,color);
+}
+function crystal(c,x,y,size,color){
+  path(c,[
+    [x,y-size],[x+size*.38,y-size*.35],
+    [x+size*.28,y],[x-size*.25,y],[x-size*.4,y-size*.35]
+  ],color);
+  path(c,[[x,y-size],[x+size*.1,y-size*.3],[x,y],[x-size*.25,y]],
+    "#ffffff40");
+}
+function cloud(c,x,y,s,opacity=1){
+  c.save();c.globalAlpha=opacity;c.translate(x,y);c.scale(s,s);
+  ellipse(c,0,10,48,18,"#ffffff");
+  ellipse(c,-22,0,25,23,"#ffffff");
+  ellipse(c,9,-10,31,31,"#ffffff");
+  ellipse(c,36,4,24,22,"#ffffff");
+  ellipse(c,0,20,44,6,"#b8dced35");
+  c.restore();
+}
+function tree(c,x,y,s,t){
+  c.save();c.translate(x,y);c.scale(s,s);
+  round(c,-10,-110,20,118,8,t.tree);
+  if(t.kind==="candy"){
+    ellipse(c,0,-126,54,54,t.leaf);
+    c.strokeStyle="#ffffff90";c.lineWidth=9;c.beginPath();
+    for(let a=0;a<Math.PI*5;a+=.08){
+      const r=a*2.6;
+      const px=Math.cos(a)*r,py=-126+Math.sin(a)*r;
+      if(a===0)c.moveTo(px,py);else c.lineTo(px,py);
+    }
+    c.stroke();
+  } else {
+    ellipse(c,0,-135,51,56,t.tree);
+    ellipse(c,-31,-105,46,42,t.leaf);
+    ellipse(c,31,-105,47,44,t.leaf);
+    ellipse(c,-10,-142,39,40,t.leaf);
+    ellipse(c,-20,-153,16,9,"#ffffff18");
+  }
+  c.restore();
+}
+
+function backdrop(c,t,cam,time,width=W,height=H){
+  c.save();c.scale(width/W,height/H);
+  c.fillStyle=gradient(c,0,0,0,H,t.sky[0],t.sky[1]);
+  c.fillRect(0,0,W,H);
+
+  const dark=t.kind==="cave"||t.kind==="lava";
+  if(!dark){
+    const glow=c.createRadialGradient(758,96,4,758,96,90);
+    glow.addColorStop(0,"#fff9cfa0");
+    glow.addColorStop(1,"#fff9cf00");
+    c.fillStyle=glow;c.fillRect(660,0,200,200);
+    ellipse(c,758,96,34,34,"#fff4bf");
+    for(let i=-1;i<5;i++){
+      const x=i*275-((cam*.09-time*5)%275);
+      cloud(c,x,83+(i%3)*26,.8+(i%2)*.25,.73);
+    }
+  }else{
+    for(let i=0;i<25;i++){
+      const x=((i*157-cam*.08)%1000+1000)%1000;
+      const y=35+(i*83)%260;
+      ellipse(c,x,y,1.4,1.4,t.accent+"90");
+    }
+  }
+
+  for(let layer=0;layer<2;layer++){
+    const spacing=360;
+    const shift=cam*(layer===0?.13:.24);
+    c.fillStyle=layer===0?t.mountain:t.far;
+    for(let i=-1;i<5;i++){
+      const x=i*spacing-(shift%spacing);
+      c.beginPath();c.moveTo(x-120,480);
+      c.bezierCurveTo(x-20,300-layer*5,x+20,120+layer*100,x+160,225+layer*65);
+      c.bezierCurveTo(x+235,275,x+285,365,x+430,480);
+      c.closePath();c.fill();
+    }
+  }
+
+  if(t.kind==="forest"){
+    const wx=700-((cam*.22)%1500);
+    c.fillStyle=gradient(c,wx,240,50,190,"#ecffffb0","#5ddbe790");
+    c.beginPath();c.moveTo(wx,250);c.lineTo(wx+35,250);
+    c.lineTo(wx+66,440);c.lineTo(wx-12,440);c.fill();
+    c.strokeStyle="#ffffff55";c.lineWidth=3;
+    for(let j=0;j<5;j++){
+      const y=258+((time*100+j*39)%165);
+      c.beginPath();c.moveTo(wx+8,y);c.lineTo(wx+12,y+20);c.stroke();
+    }
+    for(let i=-1;i<7;i++){
+      tree(c,i*205-(cam*.38%205),448,.9+(i%2)*.25,t);
+    }
+  }else if(t.kind==="candy"){
+    for(let i=-1;i<7;i++){
+      tree(c,i*215-(cam*.34%215),446,.75+(i%2)*.2,t);
+    }
+  }else if(t.kind==="cave"){
+    for(let i=-1;i<10;i++){
+      const x=i*125-(cam*.3%125);
+      crystal(c,x,435,75+(i%3)*32,i%2?"#8a95db":"#70c4d6");
+      path(c,[[x-20,0],[x+50,0],[x+18,85+(i%3)*20]],"#292942");
+    }
+  }else if(t.kind==="sky"){
+    for(let i=-1;i<6;i++){
+      const x=i*235-(cam*.3%235);
+      cloud(c,x,385+(i%2)*25,1.7,.95);
+      round(c,x-24,233,15,120,4,"#e4efff66");
+      round(c,x+24,233,15,120,4,"#e4efff66");
+      path(c,[[x-45,236],[x+7,203],[x+59,236]],"#f5f2ff99");
+    }
+  }else{
+    for(let i=-1;i<6;i++){
+      const x=i*230-(cam*.27%230);
+      round(c,x,225,90,230,3,t.tree);
+      for(let j=0;j<4;j++)c.fillRect(x+j*25,205,15,30);
+      round(c,x+32,278,22,46,11,"#ffc37466");
+    }
+    const y=489+Math.sin(time*2)*4;
+    c.fillStyle=gradient(c,0,y,0,60,"#ffbd6e","#cf5870");
+    c.fillRect(0,y,W,70);
+    for(let i=0;i<15;i++){
+      ellipse(c,((i*89-time*25)%1050+1050)%1050,
+        y+20+(i%3)*10,25,3,"#ffe39c88");
+    }
+  }
+  c.restore();
+}
+
+/* -------------------- custom animated sprite atlas --------------------
+   Five actual animation states, eight pre-rendered frames per state.
+   Character art is drawn from layered curves, not a collision rectangle.
+   ------------------------------------------------------------------- */
+
+function drawLumi(c,pose,phase){
+  const running=pose==="run";
+  const airborne=pose==="jump"||pose==="fall";
+  const stride=running?Math.sin(phase)*10:0;
+  const bob=running?Math.abs(Math.cos(phase))*2.5:Math.sin(phase)*1.2;
+
+  c.save();c.translate(48,55+bob);
+  // Fluffy curved tail.
+  c.save();c.rotate(-.15+Math.sin(phase)*.07);
+  c.beginPath();c.moveTo(-10,14);
+  c.bezierCurveTo(-55,19,-45,-22,-22,-11);
+  c.bezierCurveTo(-40,-7,-22,0,-10,14);
+  c.fillStyle=gradient(c,-45,-20,25,40,"#ffd095","#d57b48");
+  c.fill();
+  c.beginPath();c.moveTo(-38,-12);
+  c.quadraticCurveTo(-49,1,-32,9);c.lineTo(-25,2);
+  c.quadraticCurveTo(-37,-1,-30,-9);c.fillStyle="#fff1ce";c.fill();
+  c.restore();
+
+  // Backpack.
+  round(c,-23,-2,20,30,8,"#ad7446");
+  round(c,-25,5,10,16,4,"#e4b971");
+
+  // Boots and legs.
+  for(let side of [-1,1]){
+    const footX=side*9+stride*side*.65;
+    const footY=airborne?(side<0?25:20):37-Math.max(0,stride*side)*.45;
+    c.strokeStyle="#344c60";c.lineWidth=9;c.lineCap="round";
+    c.beginPath();c.moveTo(side*7,20);c.lineTo(footX,footY);c.stroke();
+    ellipse(c,footX+3,footY+3,10,6,"#623d36");
+    ellipse(c,footX+4,footY+1,8,4,"#a46b4e");
+  }
+
+  round(c,-17,-5,34,36,13,
+    gradient(c,-17,-5,34,36,"#65d5b6","#28888b"));
+  round(c,-8,8,17,15,5,"#8ee3c2");
+  ellipse(c,1,10,2,2,"#ffe4a6");
+
+  // Arms.
+  for(let side of [-1,1]){
+    const ax=side*(airborne?25:23);
+    const ay=airborne?-3:12+stride*side*.6;
+    c.strokeStyle="#39a59e";c.lineWidth=10;
+    c.beginPath();c.moveTo(side*13,0);c.lineTo(ax,ay);c.stroke();
+    ellipse(c,ax,ay+3,6,6,"#ffd7a0");
+  }
+
+  // Ears with inner fur.
+  path(c,[[-22,-23],[-29,-49],[-5,-36]],"#ed9e60");
+  path(c,[[11,-36],[29,-50],[28,-19]],"#ed9e60");
+  path(c,[[-21,-30],[-24,-43],[-11,-35]],"#f8c4b0");
+  path(c,[[17,-34],[25,-44],[23,-28]],"#f8c4b0");
+
+  // Main sculpted head.
+  ellipse(c,0,-21,29,25,
+    gradient(c,-22,-45,40,45,"#ffc98a","#e39156"));
+  ellipse(c,-13,-11,15,12,"#ffebc7");
+  ellipse(c,13,-11,15,12,"#ffebc7");
+  ellipse(c,0,-5,15,9,"#ffebc7");
+
+  // Eye expressions, including hurt animation.
+  if(pose==="hurt"){
+    c.strokeStyle="#473845";c.lineWidth=2.8;
+    for(let side of [-1,1]){
+      const x=side*11;
+      c.beginPath();c.moveTo(x-4,-25);c.lineTo(x+4,-18);
+      c.moveTo(x+4,-25);c.lineTo(x-4,-18);c.stroke();
+    }
+  }else{
+    const blink=pose==="idle"&&phase>5.4;
+    for(let side of [-1,1]){
+      const x=side*11;
+      ellipse(c,x,-23,6,blink?1.5:8,"#fff9e8");
+      ellipse(c,x+1,-22,3.6,blink?1:5.6,"#30404f");
+      if(!blink)ellipse(c,x+2,-25,1.5,2,"#fff");
+    }
+  }
+  ellipse(c,0,-12,4,3,"#644448");
+  c.strokeStyle="#885453";c.lineWidth=1.8;
+  c.beginPath();c.moveTo(-4,-6);c.quadraticCurveTo(0,-2,5,-6);c.stroke();
+  ellipse(c,-21,-13,5,2.8,"#ee9c8a80");
+  ellipse(c,21,-13,5,2.8,"#ee9c8a80");
+
+  // Explorer cap.
+  c.beginPath();c.moveTo(-22,-37);
+  c.quadraticCurveTo(-16,-56,9,-49);
+  c.quadraticCurveTo(22,-46,23,-35);
+  c.closePath();c.fillStyle="#337e81";c.fill();
+  ellipse(c,1,-36,27,5,"#235c6d");
+  round(c,-8,-46,12,10,3,"#f6ce75");
+  star(c,-2,-41,3,"#fff5c5");
+
+  // Scarf.
+  c.beginPath();c.moveTo(-14,-1);c.quadraticCurveTo(0,8,16,-2);
+  c.lineTo(15,5);c.quadraticCurveTo(0,12,-13,5);
+  c.fillStyle="#ffd671";c.fill();
+  path(c,[[10,4],[23,13+Math.sin(phase)*2],[13,17],[6,7]],"#efb04f");
+
+  c.restore();
+}
+
+const sprites={};
+for(const pose of ["idle","run","jump","fall","hurt"]){
+  sprites[pose]=[];
+  for(let frame=0;frame<8;frame++){
+    const image=document.createElement("canvas");
+    image.width=96;image.height=112;
+    drawLumi(image.getContext("2d"),pose,frame/8*Math.PI*2);
+    sprites[pose].push(image);
+  }
+}
+
+/* -------------------- procedural audio -------------------- */
+
+let audio=null, musicBeat=0, musicClock=0;
+const melody=[0,4,7,12,7,4,2,7,4,9,7,4,2,0,2,7];
+
+function prepareAudio(){
+  if(!save.sound)return;
+  try{
+    if(!audio){
+      const AC=window.AudioContext||window.webkitAudioContext;
+      if(!AC)return;
+      audio=new AC();
+    }
+    if(audio.state==="suspended")audio.resume().catch(()=>{});
+  }catch(_){}
+}
+function tone(freq,duration=.12,type="sine",volume=.045,slide=1){
+  if(!save.sound||!audio||audio.state!=="running")return;
+  try{
+    const o=audio.createOscillator(),g=audio.createGain();
+    const now=audio.currentTime;
+    o.type=type;o.frequency.setValueAtTime(freq,now);
+    o.frequency.exponentialRampToValueAtTime(Math.max(25,freq*slide),now+duration);
+    g.gain.setValueAtTime(.0001,now);
+    g.gain.exponentialRampToValueAtTime(volume,now+.008);
+    g.gain.exponentialRampToValueAtTime(.0001,now+duration);
+    o.connect(g);g.connect(audio.destination);
+    o.start(now);o.stop(now+duration+.02);
+  }catch(_){}
+}
+function sfx(name){
+  if(name==="jump")tone(330,.16,"triangle",.06,1.8);
+  if(name==="coin"){tone(1046,.09,"sine",.055,1.35);}
+  if(name==="gem"){tone(1318,.18,"triangle",.05,1.5);}
+  if(name==="stomp")tone(170,.14,"triangle",.085,.5);
+  if(name==="hurt")tone(190,.23,"sawtooth",.035,.45);
+  if(name==="power")tone(520,.27,"triangle",.07,2);
+  if(name==="checkpoint")tone(660,.25,"sine",.065,1.5);
+  if(name==="win"){tone(523,.45,"triangle",.05,2);tone(659,.45,"sine",.04,2);}
+}
+function updateMusic(dt){
+  if(!save.sound)return;
+  musicClock-=dt;
+  if(musicClock<=0){
+    musicClock+=.235;
+    const root=levelIndex===4?196:261.63;
+    const semitone=melody[musicBeat%melody.length];
+    tone(root*Math.pow(2,semitone/12),.18,"triangle",.018);
+    if(musicBeat%4===0)tone(root/2,.22,"sine",.027);
+    musicBeat++;
+  }
+}
+function quietAudio(){
+  if(audio&&audio.state==="running")audio.suspend().catch(()=>{});
+}
+function updateSoundButton(){
+  $("soundBtn").textContent=save.sound?"♪":"♪ ×";
+  $("soundBtn").title=save.sound?"ปิดเสียง":"เปิดเสียง";
+  $("soundBtn").setAttribute("aria-pressed",String(save.sound));
+}
+updateSoundButton();
+
+/* -------------------- input: independent source sets -------------------- */
+
+const input={
+  left:new Set(),right:new Set(),jump:new Set(),
+  jumpBuffer:0
+};
+function setControl(action,id,down){
+  const set=input[action],was=set.size>0;
+  if(down)set.add(id);else set.delete(id);
+  if(action==="jump"&&!was&&set.size&&state==="play"){
+    input.jumpBuffer=.12;
+  }
+}
+function clearInput(){
+  input.left.clear();input.right.clear();input.jump.clear();
+  input.jumpBuffer=0;
+  document.querySelectorAll(".touchButton").forEach(b=>b.classList.remove("pressed"));
+}
+const keyMap={
+  ArrowLeft:"left",KeyA:"left",
+  ArrowRight:"right",KeyD:"right",
+  Space:"jump"
+};
+window.addEventListener("keydown",e=>{
+  const action=keyMap[e.code];
+  if(action){
+    // Leave Space available to activate focused menu buttons.
+    if(state==="play"){
+      e.preventDefault();
+      if(!e.repeat)setControl(action,"key:"+e.code,true);
+    }
+    return;
+  }
+  if((e.code==="Escape"||e.code==="KeyP")&&!e.repeat){
+    if(state==="play"){e.preventDefault();pauseGame();}
+    else if(state==="pause"){e.preventDefault();resumeGame();}
+  }
+});
+window.addEventListener("keyup",e=>{
+  const action=keyMap[e.code];
+  if(action)setControl(action,"key:"+e.code,false);
+});
+for(const button of document.querySelectorAll("[data-control]")){
+  const action=button.dataset.control;
+  button.addEventListener("pointerdown",e=>{
+    e.preventDefault();
+    if(state!=="play")return;
+    button.setPointerCapture(e.pointerId);
+    setControl(action,"touch:"+e.pointerId,true);
+    button.classList.add("pressed");
+  });
+  const release=e=>{
+    setControl(action,"touch:"+e.pointerId,false);
+    button.classList.remove("pressed");
+  };
+  button.addEventListener("pointerup",release);
+  button.addEventListener("pointercancel",release);
+  button.addEventListener("lostpointercapture",release);
+}
+window.addEventListener("blur",()=>{
+  clearInput();if(state==="play")pauseGame();
+});
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden&&state==="play")pauseGame();
+});
+
+/* -------------------- world construction -------------------- */
+
+function makeWorld(index){
+  const t=THEMES[index];
+  const solids=[],items=[],enemies=[],hazards=[],springs=[];
+  const groundRanges=[
+    [0,800],[940,1590],[1740,2490],
+    [2640,3390],[3540,4300],[4440,WORLD_WIDTH]
+  ];
+  for(const [a,b] of groundRanges){
+    solids.push({x:a,y:FLOOR,w:b-a,h:260,type:"ground",oneWay:false});
+  }
+  const ledges=[
+    [285,335,165],[590,278,135],
+    [815,355,100],[1060,326,180],
+    [1608,342,112],[1800,338,165],
+    [2090,285,130],[2510,352,100],
+    [2760,343,145],[2910,267,195],
+    [3180,336,135],[3410,355,105],
+    [3650,337,190],[3980,280,145],
+    [4330,352,85],[4580,328,110]
+  ];
+  for(let i=0;i<ledges.length;i++){
+    const [x,y,w]=ledges[i];
+    solids.push({
+      x,y,w,h:22,type:i%3===2?"bridge":"platform",oneWay:true,
+      moving:index>=3&&i===13,baseY:y,phase:i
+    });
+  }
+  for(const x of [370,1915]){
+    solids.push({
+      x,y:292,w:44,h:38,type:"secret",oneWay:false,
+      active:false,reward:x<500?"jump":"shield"
+    });
+  }
+  springs.push({x:723,y:FLOOR-19,w:48,h:19,flash:0});
+  springs.push({x:2700,y:FLOOR-19,w:48,h:19,flash:0});
+
+  const addItem=(type,x,y)=>items.push({
+    type,x,y,w:type==="chest"?42:24,h:type==="chest"?34:28,
+    alive:true,phase:x*.023
+  });
+
+  for(const [a,b] of groundRanges){
+    for(let x=a+100;x<b-55;x+=108){
+      if(index===4&&x>4660)continue;
+      addItem("coin",x,FLOOR-32);
+    }
+  }
+  for(const s of solids.filter(s=>s.type==="platform"||s.type==="bridge")){
+    addItem("coin",s.x+28,s.y-30);
+    addItem("gem",s.x+s.w-30,s.y-34);
+  }
+  addItem("star",650,234);
+  addItem("star",2155,244);
+  addItem("star",4038,236);
+  addItem("chest",3000,239);
+  addItem("chest",3810,FLOOR-22);
+  addItem("speed",1125,288);
+  addItem("shield",365,FLOOR-35);
+  addItem("jump",3655,299);
+
+  const enemyPositions=[510,1180,1935,2830,3760,4660];
+  if(index>=1)enemyPositions.push(1470);
+  if(index>=2)enemyPositions.push(3210);
+  if(index>=3)enemyPositions.push(4110);
+  for(const x of enemyPositions){
+    if(index===4&&x>4400)continue;
+    const ground=groundRanges.find(([a,b])=>x>=a&&x<b);
+    if(!ground)continue;
+    enemies.push({
+      x,y:FLOOR-36,w:40,h:36,
+      left:Math.max(ground[0]+25,x-100),
+      right:Math.min(ground[1]-65,x+105),
+      vx:(index%2?-1:1)*(48+index*15),
+      alive:true,phase:x*.01
+    });
+  }
+
+  const hazardPositions=[1360];
+  if(index>=1)hazardPositions.push(2310,3935);
+  if(index>=2)hazardPositions.push(3110);
+  if(index>=3)hazardPositions.push(2030);
+  for(const x of hazardPositions){
+    hazards.push({x,y:FLOOR-19,w:46+index*3,h:19});
+  }
+
+  const boss=index===4?{
+    x:4850,y:FLOOR-98,w:112,h:98,
+    vx:0,vy:0,hp:5,maxHp:5,mode:"idle",
+    timer:1.6,inv:0,grounded:true
+  }:null;
+
+  return {
+    theme:t,index,width:WORLD_WIDTH,solids,items,enemies,hazards,springs,boss,
+    waves:[],particles:[],texts:[],
+    checkpoint:{x:2240,y:FLOOR,active:false},
+    goal:{x:5090,y:FLOOR-132,w:60,h:132},
+    spawn:{x:90,y:FLOOR-52},
+    score:0,coins:0,hearts:3,elapsed:0,timeLimit:180-index*10,
+    t:0,collected:0,
+    totalCollect:items.filter(i=>["coin","gem","star","chest"].includes(i.type)).length,
+    secretFound:false,gateNotice:0
+  };
+}
+
+function startLevel(index){
+  levelIndex=clamp(index,0,4);
+  world=makeWorld(levelIndex);
+  player={
+    x:90,y:FLOOR-52,w:34,h:52,vx:0,vy:0,
+    grounded:true,coyote:.1,face:1,inv:0,hurt:0,
+    speed:0,jump:0,shield:0,anim:0
+  };
+  camera=0;screenShake=0;musicClock=0;musicBeat=0;
+  fireworks=[];transitionAlpha=.9;
+  clearInput();state="play";showScreen(null);
+  $("hud").hidden=false;$("touch").hidden=false;
+  $("pauseBtn").textContent="Ⅱ";
+  prepareAudio();updateHUD();
+  notify(THEMES[index].name+" — "+THEMES[index].thai,3);
+  if(!storageAvailable){
+    notify("เบราว์เซอร์ไม่อนุญาตให้บันทึก — ยังเล่นได้ในเซสชันนี้",4);
+  }
+}
+
+function showScreen(id) {
+  for (const name of ["home", "selection", "paused", "result"]) {
+    $(name).hidden = name !== id;
+  }
+
+  // หน้าแรกและหน้าเลือกด่านใช้พื้นที่เต็มจอบนมือถือ
+  $("game").classList.toggle(
+    "menuLayout",
+    id === "home" || id === "selection"
+  );
+
+  clearInput();
+}
+function home(){
+  state="home";world=null;player=null;
+  $("hud").hidden=true;$("touch").hidden=true;
+  showScreen("home");quietAudio();
+}
+function levelSelect(){
+  state="select";$("hud").hidden=true;$("touch").hidden=true;
+  showScreen("selection");quietAudio();buildCards();
+}
+function buildCards(){
+  $("cards").replaceChildren();
+  THEMES.forEach((theme,index)=>{
+    const b=document.createElement("button");
+    b.className="card";b.disabled=index>=save.unlocked;
+    b.setAttribute("aria-label",theme.name+(b.disabled?" ยังไม่ปลดล็อก":""));
+    const preview=document.createElement("canvas");
+    preview.width=280;preview.height=140;
+    const pc=preview.getContext("2d");
+    backdrop(pc,theme,0,2,280,140);
+    pc.fillStyle=theme.top;pc.fillRect(0,117,280,9);
+    pc.fillStyle=theme.dirt;pc.fillRect(0,126,280,14);
+    pc.drawImage(sprites.idle[0],25,55,64,75);
+    const title=document.createElement("b");
+    title.textContent=(index+1)+". "+theme.name;
+    const note=document.createElement("small");
+    note.textContent=b.disabled?"🔒 ผ่านด่านก่อนหน้าเพื่อปลดล็อก":
+      "★".repeat(save.stars[index])+"☆".repeat(3-save.stars[index])+
+      " · BEST "+save.best[index].toLocaleString();
+    b.append(preview,title,note);
+    b.onclick=()=>startLevel(index);
+    $("cards").append(b);
+  });
+}
+function pauseGame(){
+  if(state!=="play")return;
+  state="pause";showScreen("paused");$("touch").hidden=true;
+  quietAudio();updateHUD();
+}
+function resumeGame(){
+  if(state!=="pause")return;
+  state="play";showScreen(null);$("touch").hidden=false;
+  prepareAudio();
+}
+function notify(message,duration=2){
+  $("toast").textContent=message;
+  $("toast").classList.add("show");
+  toastTime=duration;
+}
+
+function finishLevel(){
+  if(state!=="play")return;
+  const ratio=world.collected/Math.max(1,world.totalCollect);
+  const stars=1+(ratio>=.45?1:0)+
+    (ratio>=.72&&world.hearts>=2&&world.elapsed<world.timeLimit*.8?1:0);
+  const bonus=world.hearts*250+Math.floor(world.timeLimit-world.elapsed)*10;
+  world.score+=bonus;
+  save.unlocked=Math.max(save.unlocked,Math.min(5,levelIndex+2));
+  save.best[levelIndex]=Math.max(save.best[levelIndex],world.score);
+  save.stars[levelIndex]=Math.max(save.stars[levelIndex],stars);
+  persist();
+
+  state="win";showScreen("result");$("touch").hidden=true;
+  $("resultKicker").textContent=levelIndex===4?"ALL WORLDS COMPLETE":"TREASURE TRAIL COMPLETE";
+  $("resultTitle").textContent=levelIndex===4?"พิชิตโลกทั้งห้า!":"ผ่านด่านแล้ว!";
+  $("resultStars").textContent="★".repeat(stars)+"☆".repeat(3-stars);
+  $("resultText").textContent=
+    world.theme.name+"\nคะแนน "+world.score.toLocaleString()+
+    " · เหรียญ "+world.coins+
+    "\nเก็บสมบัติ "+Math.round(ratio*100)+"% · โบนัส "+bonus.toLocaleString()+
+    "\nสถิติสูงสุด "+save.best[levelIndex].toLocaleString();
+  $("nextBtn").hidden=false;
+  $("nextBtn").textContent=levelIndex===4?"กลับแผนที่":"ด่านถัดไป";
+  sfx("win");fireworkClock=0;updateHUD();
+}
+function gameOver(reason){
+  if(state!=="play")return;
+  save.best[levelIndex]=Math.max(save.best[levelIndex],world.score);
+  persist();state="over";
+  showScreen("result");$("touch").hidden=true;
+  $("resultKicker").textContent="A NEW ADVENTURE AWAITS";
+  $("resultTitle").textContent="GAME OVER";
+  $("resultStars").textContent="♡";
+  $("resultText").textContent=reason+
+    "\nคะแนน "+world.score.toLocaleString()+
+    "\nลองอีกครั้งได้เสมอ ลูมิยังพร้อมผจญภัย!";
+  $("nextBtn").hidden=true;sfx("hurt");updateHUD();
+}
+
+$("startBtn").onclick=()=>startLevel(0);
+$("selectBtn").onclick=levelSelect;
+$("backBtn").onclick=home;
+$("pauseBtn").onclick=()=>state==="play"?pauseGame():resumeGame();
+$("resumeBtn").onclick=resumeGame;
+$("restartBtn").onclick=()=>{if(world)startLevel(levelIndex);};
+$("pauseRestart").onclick=()=>startLevel(levelIndex);
+$("pauseHome").onclick=home;
+$("retryBtn").onclick=()=>startLevel(levelIndex);
+$("resultMap").onclick=levelSelect;
+$("nextBtn").onclick=()=>levelIndex===4?levelSelect():startLevel(levelIndex+1);
+$("soundBtn").onclick=()=>{
+  save.sound=!save.sound;persist();updateSoundButton();
+  if(save.sound&&state==="play")prepareAudio();else quietAudio();
+};
+
+/* -------------------- gameplay feedback -------------------- */
+
+function burst(x,y,color,count=15,force=160){
+  for(let i=0;i<count;i++){
+    const a=Math.random()*Math.PI*2,s=force*(.3+Math.random()*.7);
+    world.particles.push({
+      x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-35,
+      life:.4+Math.random()*.35,max:.75,size:2+Math.random()*4,color
+    });
+  }
+}
+function floatingText(text,x,y,color="#fff0a3"){
+  world.texts.push({text,x,y,life:1.1,color});
+}
+function damage(fell=false){
+  if(state!=="play")return;
+  if(!fell&&player.inv>0)return;
+  if(!fell&&player.shield>0){
+    player.shield=0;player.inv=1.5;
+    burst(player.x+17,player.y+26,"#a2fcff",22);
+    screenShake=.13;sfx("power");notify("โล่ป้องกันการชน!",1.4);
+    return;
+  }
+  world.hearts--;sfx("hurt");screenShake=.25;
+  burst(player.x+17,player.y+26,"#ffbbb2",18);
+  if(world.hearts<=0){gameOver(fell?"หัวใจหมดจากการตกเหว":"หัวใจหมดแล้ว");return;}
+  const spawn=world.spawn;
+  player.x=spawn.x;player.y=spawn.y;
+  player.vx=0;player.vy=0;player.inv=2.2;player.hurt=.35;
+  player.grounded=true;player.coyote=.1;
+  input.jumpBuffer=0;
+  camera=clamp(player.x-W*.3,0,WORLD_WIDTH-W);
+  notify(world.checkpoint.active?"กลับมาที่ Checkpoint":"ลองเส้นทางนี้อีกครั้ง!",1.5);
+}
+function collect(item){
+  item.alive=false;
+  const points={coin:25,gem:150,star:300,chest:600};
+  const colors={
+    coin:"#ffe17c",gem:"#9cf5ff",star:"#fff29c",chest:"#ffd183",
+    speed:"#98ffcb",jump:"#ffb6f1",shield:"#8cecff"
+  };
+  burst(item.x,item.y,colors[item.type],item.type==="chest"?30:14);
+  if(points[item.type]){
+    world.score+=points[item.type];world.collected++;
+    if(item.type==="coin")world.coins++;
+    floatingText("+"+points[item.type],item.x,item.y-10);
+    sfx(item.type==="coin"?"coin":"gem");
+  }else{
+    player[item.type]=item.type==="shield"?15:10;
+    sfx("power");
+    notify({
+      speed:"รองเท้าสายลม — วิ่งเร็วขึ้น 10 วินาที",
+      jump:"พลังใบไม้ — กระโดดสูงขึ้น 10 วินาที",
+      shield:"โล่แสง — ป้องกันการชนหนึ่งครั้ง ภายใน 15 วินาที"
+    }[item.type],2.5);
+  }
+}
+
+/* -------------------- player collision and physics -------------------- */
+
+function updatePlayer(dt){
+  const p=player;
+  p.inv=Math.max(0,p.inv-dt);p.hurt=Math.max(0,p.hurt-dt);
+  for(const key of ["speed","jump","shield"])p[key]=Math.max(0,p[key]-dt);
+  input.jumpBuffer=Math.max(0,input.jumpBuffer-dt);
+
+  p.coyote=p.grounded?.09:Math.max(0,p.coyote-dt);
+  const axis=(input.right.size?1:0)-(input.left.size?1:0);
+  const maxSpeed=p.speed>0?340:258;
+  const target=axis*maxSpeed;
+  const acceleration=p.grounded?2100:1350;
+  p.vx+=clamp(target-p.vx,-acceleration*dt,acceleration*dt);
+  if(axis)p.face=axis;
+
+  if(input.jumpBuffer>0&&p.coyote>0){
+    p.vy=p.jump>0?-700:-590;
+    p.grounded=false;p.coyote=0;input.jumpBuffer=0;
+    sfx("jump");
+    burst(p.x+p.w/2,p.y+p.h,"#e7f8d0",7,75);
+  }
+
+  const held=input.jump.size>0;
+  let gravity=1660;
+  if(p.vy<0)gravity*=held?.65:1.9;
+  p.vy=Math.min(950,p.vy+gravity*dt);
+
+  const oldX=p.x,oldY=p.y,oldBottom=p.y+p.h;
+  p.x=clamp(p.x+p.vx*dt,0,world.width-p.w);
+
+  for(const s of world.solids){
+    if(s.oneWay||(s.type==="secret"&&!s.active))continue;
+    if(!overlap(p,s))continue;
+    if(oldX+p.w<=s.x+.5&&p.vx>0){p.x=s.x-p.w;p.vx=0;}
+    else if(oldX>=s.x+s.w-.5&&p.vx<0){p.x=s.x+s.w;p.vx=0;}
+  }
+
+  p.y+=p.vy*dt;p.grounded=false;
+  for(const s of world.solids){
+    if(p.x+p.w<=s.x||p.x>=s.x+s.w)continue;
+    const hidden=s.type==="secret"&&!s.active;
+    if(!hidden&&p.vy>=0&&oldBottom<=s.y+5&&p.y+p.h>=s.y){
+      if(p.y<s.y+s.h){
+        p.y=s.y-p.h;p.vy=0;p.grounded=true;
+      }
+    }else if(!s.oneWay&&p.vy<0&&
+      oldY>=s.y+s.h-1&&p.y<=s.y+s.h&&p.y+p.h>s.y){
+      p.y=s.y+s.h;p.vy=60;
+      if(s.type==="secret"&&!s.active){
+        s.active=true;world.score+=100;
+        world.items.push({
+          type:s.reward,x:s.x+s.w/2,y:s.y-28,
+          w:24,h:28,alive:true,phase:0
+        });
+        burst(s.x+s.w/2,s.y,"#ffeaa5",22);
+        floatingText("SECRET +100",s.x,s.y-25);
+        sfx("power");
+      }
+    }
+  }
+
+  for(const spring of world.springs){
+    spring.flash=Math.max(0,spring.flash-dt);
+    if(p.vy>=0&&p.x+p.w>spring.x&&p.x<spring.x+spring.w&&
+      oldBottom<=spring.y+spring.h+3&&p.y+p.h>=spring.y){
+      p.y=spring.y-p.h;p.vy=-860;p.grounded=false;p.coyote=0;
+      spring.flash=.25;sfx("jump");
+      burst(spring.x+24,spring.y,"#ffc4d4",12,120);
+    }
+  }
+
+  p.anim+=dt*(Math.abs(p.vx)>20&&p.grounded?14:7);
+  if(p.grounded&&Math.abs(p.vx)>70&&Math.random()<dt*16){
+    burst(p.x+p.w/2,p.y+p.h-2,"#f4efce",2,35);
+  }
+  if(p.y>H+140){damage(true);return;}
+
+  // Pickup collision uses visual bobbing so feedback matches the drawing.
+  for(const item of world.items){
+    if(!item.alive)continue;
+    const bob=Math.sin(world.t*3+item.phase)*4;
+    const box={
+      x:item.x-item.w/2,y:item.y-item.h/2+bob,
+      w:item.w,h:item.h
+    };
+    if(overlap(p,box))collect(item);
+  }
+
+  for(const enemy of world.enemies){
+    if(!enemy.alive)continue;
+    enemy.x+=enemy.vx*dt;
+    if(enemy.x<enemy.left){enemy.x=enemy.left;enemy.vx=Math.abs(enemy.vx);}
+    if(enemy.x>enemy.right){enemy.x=enemy.right;enemy.vx=-Math.abs(enemy.vx);}
+    if(!overlap(p,enemy))continue;
+    if(p.vy>0&&oldBottom<=enemy.y+15){
+      enemy.alive=false;p.vy=-430;p.grounded=false;p.coyote=0;
+      world.score+=200;screenShake=.09;
+      burst(enemy.x+20,enemy.y+18,world.theme.enemy,20);
+      floatingText("+200",enemy.x,enemy.y-10);sfx("stomp");
+    }else{
+      damage();
+      if(state!=="play")return;
+    }
+  }
+
+  for(const hazard of world.hazards){
+    if(overlap(p,hazard)){
+      damage();if(state!=="play")return;
+    }
+  }
+
+  const cp=world.checkpoint;
+  if(!cp.active&&p.x+p.w>cp.x-10&&p.x<cp.x+45&&p.grounded){
+    cp.active=true;
+    world.spawn={x:cp.x+45,y:FLOOR-p.h};
+    world.score+=250;
+    burst(cp.x+18,FLOOR-65,"#b7fff1",28);
+    sfx("checkpoint");notify("CHECKPOINT — บันทึกจุดเกิดใหม่แล้ว",2.5);
+  }
+
+  if(!world.secretFound&&p.x>2910&&p.x<3105&&p.y<290){
+    world.secretFound=true;world.score+=350;
+    floatingText("SECRET GROVE +350",p.x,p.y-28,"#b9fff0");
+    notify("ค้นพบสวนสมบัติบนยอดไม้!",2.5);
+  }
+
+  updateBoss(dt,oldBottom);
+
+  if(state==="play"&&overlap(p,world.goal)){
+    if(world.boss&&world.boss.hp>0){
+      if(world.gateNotice<=0){
+        notify("เหยียบด้านบนผู้พิทักษ์ให้ครบ ก่อนเข้าสู่ประตู!",2);
+        world.gateNotice=2.5;
+      }
+    }else finishLevel();
+  }
+}
+
+/* -------------------- final guardian boss -------------------- */
+
+function updateBoss(dt,oldBottom){
+  const b=world.boss;
+  if(!b||b.hp<=0)return;
+  const p=player;
+  b.inv=Math.max(0,b.inv-dt);
+  // The guardian waits until the player enters its arena.
+  if(p.x>4420){
+    b.timer-=dt;
+    if(b.mode==="idle"&&b.timer<=0){
+      b.mode="charge";b.timer=.75;
+    }else if(b.mode==="charge"&&b.timer<=0){
+      b.mode="jump";b.vy=-490;
+      b.vx=clamp((p.x-b.x)*.65,-190,190);
+      b.grounded=false;
+    }
+    if(b.mode==="jump"){
+      b.vy+=1300*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;
+      b.x=clamp(b.x,4510,4970);
+      if(b.y+b.h>=FLOOR){
+        b.y=FLOOR-b.h;b.vy=0;b.vx=0;
+        b.mode="idle";b.timer=b.hp<=2?.8:1.3;
+        b.grounded=true;screenShake=.22;
+        burst(b.x+b.w/2,FLOOR,"#ffc986",25,210);
+        sfx("stomp");
+        for(const dir of [-1,1]){
+          world.waves.push({
+            x:b.x+b.w/2,y:FLOOR-16,w:42,h:16,
+            vx:dir*(b.hp<=2?260:215),life:2.4
+          });
+        }
+      }
+    }
+  }
+  if(overlap(p,b)){
+    if(p.vy>0&&oldBottom<=b.y+20){
+      p.y=b.y-p.h;p.vy=-650;p.grounded=false;p.coyote=0;
+      if(b.inv<=0){
+        b.hp--;b.inv=.8;screenShake=.17;
+        world.score+=400;sfx("stomp");
+        burst(b.x+b.w/2,b.y+15,"#fff0ae",25);
+        if(b.hp<=0){
+          world.score+=2000;world.waves=[];
+          burst(b.x+b.w/2,b.y+40,"#b6ffed",70,290);
+          floatingText("GUARDIAN CLEARED +2000",b.x-80,b.y-30);
+          notify("ผู้พิทักษ์สงบลงแล้ว — ไปยังประตูเส้นชัย!",3);
+          sfx("win");
+        }
+      }
+    }else{
+      damage();if(state!=="play")return;
+    }
+  }
+  for(const wave of world.waves){
+    wave.x+=wave.vx*dt;wave.life-=dt;
+    if(wave.life>0&&overlap(p,wave)){
+      wave.life=0;damage();if(state!=="play")return;
+    }
+  }
+  world.waves=world.waves.filter(w=>w.life>0&&w.x>4430&&w.x<WORLD_WIDTH);
+}
+
+/* -------------------- game update -------------------- */
+
+function update(dt){
+  if(state!=="play"||!world)return;
+  world.t+=dt;world.elapsed+=dt;
+  world.gateNotice=Math.max(0,world.gateNotice-dt);
+
+  if(world.elapsed>=world.timeLimit){
+    world.hearts=0;gameOver("หมดเวลาการผจญภัย");return;
+  }
+
+  for(const s of world.solids){
+    if(!s.moving)continue;
+    const oldY=s.y;
+    s.y=s.baseY+Math.sin(world.t*1.3+s.phase)*25;
+    if(player.grounded&&
+      Math.abs(player.y+player.h-oldY)<2&&
+      player.x+player.w>s.x&&player.x<s.x+s.w){
+      player.y+=s.y-oldY;
+    }
+  }
+
+  updatePlayer(dt);
+  if(state!=="play")return;
+
+  const target=clamp(player.x+player.w/2-W*.37,0,world.width-W);
+  camera=lerp(camera,target,1-Math.exp(-7*dt));
+  screenShake=Math.max(0,screenShake-dt);
+
+  for(const p of world.particles){
+    p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
+    p.vy+=310*dt;p.vx*=Math.exp(-1.6*dt);
+  }
+  world.particles=world.particles.filter(p=>p.life>0);
+  for(const text of world.texts){text.life-=dt;text.y-=35*dt;}
+  world.texts=world.texts.filter(t=>t.life>0);
+
+  updateMusic(dt);
+  uiClock+=dt;
+  if(uiClock>.08){uiClock=0;updateHUD();}
+}
+
+function updateHUD(){
+  if(!world)return;
+  $("hearts").textContent="♥".repeat(world.hearts)+"♡".repeat(3-world.hearts);
+  $("score").textContent="คะแนน "+world.score.toLocaleString();
+  $("coins").textContent="● "+world.coins;
+  $("timer").textContent="เวลา "+Math.ceil(Math.max(0,world.timeLimit-world.elapsed));
+  const powers=[];
+  if(player.speed>0)powers.push("เร็ว "+Math.ceil(player.speed)+"s");
+  if(player.jump>0)powers.push("กระโดด "+Math.ceil(player.jump)+"s");
+  if(player.shield>0)powers.push("โล่ "+Math.ceil(player.shield)+"s");
+  $("power").textContent=powers.join(" · ");
+  $("power").hidden=!powers.length;
+}
+
+/* -------------------- world rendering -------------------- */
+
+function drawSolid(s,t){
+  if(s.type==="secret"){
+    if(!s.active){
+      ctx.globalAlpha=.22+.16*Math.sin(world.t*3);
+      star(ctx,s.x+s.w/2,s.y+18,5,"#fffed0",world.t*.5);
+      ctx.globalAlpha=1;return;
+    }
+    ctx.lineWidth=2;
+    round(ctx,s.x,s.y,s.w,s.h,9,
+      gradient(ctx,s.x,s.y,0,s.h,"#ffde82","#c28b48"),"#8c623e");
+    round(ctx,s.x+5,s.y+5,s.w-10,s.h-10,5,null,"#fff0be");
+    star(ctx,s.x+s.w/2,s.y+19,9,"#fff4cc");return;
+  }
+  if(s.type==="bridge"){
+    ctx.strokeStyle="#74564b";ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(s.x,s.y+2);
+    ctx.quadraticCurveTo(s.x+s.w/2,s.y+18,s.x+s.w,s.y+2);ctx.stroke();
+    for(let x=s.x;x<s.x+s.w;x+=16){
+      round(ctx,x,s.y,14,15,3,
+        gradient(ctx,x,s.y,0,15,"#eac590","#a97650"));
+    }
+    return;
+  }
+
+  const h=s.type==="ground"?140:s.h+14;
+  round(ctx,s.x,s.y,s.w,h,s.type==="ground"?9:13,
+    gradient(ctx,s.x,s.y,0,h,t.dirt,t.deep));
+  round(ctx,s.x-2,s.y,s.w+4,17,9,t.top);
+  ctx.fillStyle="#ffffff35";ctx.fillRect(s.x+10,s.y+2,Math.max(0,s.w-20),3);
+
+  if(s.type==="platform"){
+    for(let x=s.x+18;x<s.x+s.w-10;x+=29){
+      ellipse(ctx,x,s.y+24,4,3,"#ffffff20");
+    }
+    if(t.kind==="forest"){
+      ctx.strokeStyle="#398764";ctx.lineWidth=3;
+      for(let i=0;i<3;i++){
+        const x=s.x+25+i*(s.w-50)/2;
+        ctx.beginPath();ctx.moveTo(x,s.y+25);
+        ctx.quadraticCurveTo(x+12,s.y+43,x,s.y+56);ctx.stroke();
+        ellipse(ctx,x+5,s.y+42,7,3,"#54af72");
+      }
+    }
+    return;
+  }
+
+  const start=Math.max(s.x,Math.floor(camera/45)*45);
+  const end=Math.min(s.x+s.w,camera+W+50);
+  for(let x=start+16;x<end-8;x+=45){
+    ctx.strokeStyle="#ffffff15";ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(x,s.y+37);ctx.lineTo(x+16,s.y+41);ctx.stroke();
+    ellipse(ctx,x+10,s.y+75,3,2,"#241e3525");
+    if(t.kind==="forest"){
+      ctx.strokeStyle="#52a659";ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(x,s.y+2);ctx.lineTo(x-4,s.y-7);
+      ctx.moveTo(x,s.y+2);ctx.lineTo(x+4,s.y-9);ctx.stroke();
+      if(Math.floor(x/45)%4===0){
+        ellipse(ctx,x+7,s.y-8,4,3,"#fff2bd");
+        ellipse(ctx,x+11,s.y-9,3,3,"#fff2bd");
+        ellipse(ctx,x+9,s.y-11,3,3,"#ffd9bf");
+      }
+    }else if(t.kind==="candy"){
+      ctx.fillStyle=["#ef8fac","#83d9d1","#f2c970"][Math.abs(Math.floor(x/45))%3];
+      ctx.save();ctx.translate(x,s.y+9);ctx.rotate(.5);
+      ctx.fillRect(-3,-1,8,3);ctx.restore();
+    }else if(t.kind==="cave"&&Math.floor(x/45)%3===0){
+      crystal(ctx,x,s.y+6,17,t.accent+"aa");
+    }
+  }
+}
+
+function drawItem(item){
+  if(!item.alive)return;
+  const y=item.y+Math.sin(world.t*3+item.phase)*4,x=item.x;
+  ctx.save();ctx.translate(x,y);
+  const type=item.type;
+
+  if(type==="coin"){
+    const width=8+Math.abs(Math.sin(world.t*2+item.phase))*3;
+    ellipse(ctx,0,0,width+2,14,"#ba7a35");
+    ellipse(ctx,0,-1,width,12,
+      gradient(ctx,-10,-12,18,23,"#fff3a0","#f6b535"));
+    ctx.strokeStyle="#ffeeb0";ctx.lineWidth=1.6;
+    ctx.beginPath();ctx.ellipse(0,-1,width*.64,8.5,0,0,Math.PI*2);ctx.stroke();
+    ctx.fillStyle="#b67b31";ctx.fillRect(-1,-5,2,8);
+    ellipse(ctx,-3,-7,2,2,"#fff9df");
+  }else if(type==="gem"){
+    path(ctx,[[0,-15],[11,-6],[8,8],[0,15],[-8,8],[-11,-6]],"#55bed2");
+    path(ctx,[[0,-15],[11,-6],[0,0],[-11,-6]],"#d4ffff");
+    path(ctx,[[-11,-6],[0,0],[0,15],[-8,8]],"#8be9e8");
+    path(ctx,[[0,0],[11,-6],[8,8],[0,15]],"#a3b8fc");
+    ctx.strokeStyle="#f2ffff";ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.moveTo(-5,-6);ctx.lineTo(0,-11);ctx.stroke();
+  }else if(type==="star"){
+    const glow=ctx.createRadialGradient(0,0,2,0,0,28);
+    glow.addColorStop(0,"#fff39a99");glow.addColorStop(1,"#fff39a00");
+    ctx.fillStyle=glow;ctx.fillRect(-28,-28,56,56);
+    star(ctx,0,0,18,"#c38b37",.07);
+    star(ctx,0,-2,16,"#ffeb8c",.07);
+    ellipse(ctx,-4,-3,1.8,3,"#805840");
+    ellipse(ctx,4,-3,1.8,3,"#805840");
+  }else if(type==="chest"){
+    round(ctx,-22,-12,44,29,5,"#915632","#513b39");
+    round(ctx,-22,-19,44,21,8,
+      gradient(ctx,-22,-19,0,21,"#e5a358","#a56139"));
+    round(ctx,-21,-3,42,6,2,"#ffd885");
+    round(ctx,-14,-18,5,34,2,"#f3cc76");
+    round(ctx,9,-18,5,34,2,"#f3cc76");
+    round(ctx,-5,-3,10,12,3,"#ffe9a0");
+    ellipse(ctx,0,2,2,2,"#735039");
+    star(ctx,20,-24,5,"#fff3b6",world.t);
+  }else{
+    const color={speed:"#85ffca",jump:"#ffc0ed",shield:"#98edff"}[type];
+    const glow=ctx.createRadialGradient(0,0,4,0,0,26);
+    glow.addColorStop(0,color+"88");glow.addColorStop(1,color+"00");
+    ctx.fillStyle=glow;ctx.fillRect(-26,-26,52,52);
+    ellipse(ctx,0,0,15,15,color);
+    ellipse(ctx,-4,-6,6,3,"#ffffff77");
+    ctx.fillStyle="#315368";ctx.strokeStyle="#315368";ctx.lineWidth=2.5;
+    if(type==="speed"){
+      path(ctx,[[-3,-10],[7,-10],[2,-1],[8,-1],[-5,11],[-2,2],[-8,2]],"#315368");
+    }else if(type==="jump"){
+      ctx.beginPath();ctx.moveTo(-7,3);ctx.lineTo(0,-6);ctx.lineTo(7,3);
+      ctx.moveTo(0,-6);ctx.lineTo(0,10);ctx.stroke();
+    }else{
+      ctx.beginPath();ctx.moveTo(-8,-7);ctx.lineTo(8,-7);
+      ctx.lineTo(6,4);ctx.quadraticCurveTo(0,13,-6,4);ctx.closePath();ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+function drawEnemy(e){
+  const t=world.theme,x=e.x+e.w/2,y=e.y+e.h;
+  const wob=Math.sin(world.t*8+e.phase);
+  ctx.save();ctx.translate(x,y);
+  ellipse(ctx,0,0,22,5,"#17344530");
+  ellipse(ctx,-10,0,8,4,t.deep);
+  ellipse(ctx,10,0,8,4,t.deep);
+  ctx.scale(1+wob*.035,1-wob*.05);
+
+  if(t.kind==="sky"){
+    cloud(ctx,0,-18,.42,1);
+  }else{
+    ctx.beginPath();ctx.moveTo(-22,-7);
+    ctx.bezierCurveTo(-29,-39,19,-49,23,-9);
+    ctx.quadraticCurveTo(22,2,0,-1);
+    ctx.quadraticCurveTo(-17,3,-22,-7);
+    ctx.fillStyle=gradient(ctx,-20,-40,35,40,t.enemy,t.tree);ctx.fill();
+    ellipse(ctx,-8,-27,8,4,"#ffffff35");
+  }
+  if(t.kind==="forest"){
+    ctx.save();ctx.translate(0,-35);ctx.rotate(Math.sin(world.t*4+e.phase)*.13);
+    ellipse(ctx,-7,-4,9,4,"#68b069");
+    ellipse(ctx,7,-7,10,5,"#b8e789");
+    ctx.strokeStyle="#38896a";ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(0,3);ctx.lineTo(0,-7);ctx.stroke();ctx.restore();
+  }else if(t.kind==="candy"){
+    ellipse(ctx,0,-36,7,6,"#f4719e");
+    ctx.strokeStyle="#fff0dd";ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(-16,-28);ctx.quadraticCurveTo(0,-20,15,-29);ctx.stroke();
+  }else if(t.kind==="cave"){
+    crystal(ctx,0,-31,18,"#d6eaff");
+    crystal(ctx,-12,-25,10,"#98dafa");
+  }else if(t.kind==="lava"){
+    path(ctx,[[-16,-30],[-12,-39],[-4,-31]],"#d0a69f");
+    path(ctx,[[6,-33],[13,-42],[17,-28]],"#d0a69f");
+    ctx.strokeStyle="#ffcb9488";ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(-3,-34);ctx.lineTo(2,-24);ctx.lineTo(-3,-17);ctx.stroke();
+  }
+  for(const side of [-1,1]){
+    ellipse(ctx,side*8,-18,5,7,"#fff9de");
+    ellipse(ctx,side*8+(e.vx>0?1:-1),-17,2.4,4,"#37425a");
+    ellipse(ctx,side*8+1,-20,1,1.5,"#fff");
+  }
+  ctx.strokeStyle="#475163";ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(-3,-8);ctx.quadraticCurveTo(0,-5,3,-8);ctx.stroke();
+  ctx.restore();
+}
+
+function drawHazard(h){
+  const t=world.theme;
+  for(let i=0;i<4;i++){
+    const x=h.x+6+i*(h.w-12)/3;
+    if(t.kind==="cave"){
+      crystal(ctx,x,FLOOR,21,"#e7a0e0");
+    }else if(t.kind==="lava"){
+      const sway=Math.sin(world.t*7+i)*4;
+      ctx.beginPath();ctx.moveTo(x-7,FLOOR);
+      ctx.quadraticCurveTo(x-11,FLOOR-12,x+sway,FLOOR-26);
+      ctx.quadraticCurveTo(x+10,FLOOR-9,x+6,FLOOR);
+      ctx.fillStyle="#ffc17c";ctx.fill();
+      ellipse(ctx,x,FLOOR-5,4,7,"#ffe4a3");
+    }else{
+      ctx.save();ctx.translate(x,FLOOR-7);
+      star(ctx,0,0,12,t.kind==="candy"?"#c579b3":"#71896d",i);
+      ellipse(ctx,0,0,7,7,t.kind==="candy"?"#ebafce":"#a8bd85");
+      ellipse(ctx,-2,-2,2,2,"#ffffff66");ctx.restore();
+    }
+  }
+}
+
+function drawSpring(s){
+  const compression=s.flash>0?6:0;
+  ctx.strokeStyle="#eae7ff";ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(s.x+12,FLOOR-2);
+  ctx.lineTo(s.x+31,FLOOR-7);
+  ctx.lineTo(s.x+15,FLOOR-12+compression*.5);ctx.stroke();
+  ellipse(ctx,s.x+24,s.y+8+compression,27,9,"#bd5c80");
+  ellipse(ctx,s.x+24,s.y+3+compression,26,10,
+    gradient(ctx,s.x,s.y-7,0,20,"#ffc4ce","#ed8cab"));
+  for(let i=0;i<3;i++)ellipse(ctx,s.x+10+i*14,s.y+1+compression,4,2,"#fff2d5");
+}
+
+function drawCheckpoint(){
+  const c=world.checkpoint;
+  round(ctx,c.x,FLOOR-110,7,110,3,"#e6e9ca");
+  ellipse(ctx,c.x+3,FLOOR-112,6,6,"#ffdc86");
+  ctx.beginPath();ctx.moveTo(c.x+7,FLOOR-106);
+  ctx.quadraticCurveTo(c.x+30,FLOOR-118+Math.sin(world.t*5)*4,c.x+55,FLOOR-99);
+  ctx.lineTo(c.x+55,FLOOR-70);
+  ctx.quadraticCurveTo(c.x+30,FLOOR-88,c.x+7,FLOOR-77);
+  ctx.closePath();ctx.fillStyle=c.active?"#7af0c1":"#adc7d3";ctx.fill();
+  star(ctx,c.x+28,FLOOR-93,9,c.active?"#fff4b1":"#f3faff");
+  if(c.active){
+    const pulse=1+Math.sin(world.t*3)*.1;
+    ellipse(ctx,c.x+4,FLOOR+1,26*pulse,6,"#b9ffdf66");
+  }
+}
+
+function drawGoal(){
+  const q=world.goal;
+  const locked=world.boss&&world.boss.hp>0;
+  ctx.save();ctx.translate(q.x+q.w/2,FLOOR);
+  const glow=ctx.createRadialGradient(0,-60,5,0,-60,110);
+  glow.addColorStop(0,locked?"#f4a28930":"#aeffe67a");
+  glow.addColorStop(1,"#aeffe600");
+  ctx.fillStyle=glow;ctx.fillRect(-110,-170,220,220);
+
+  round(ctx,-37,-113,74,115,34,"#40586c");
+  round(ctx,-27,-102,54,102,27,
+    gradient(ctx,-27,-102,0,102,
+      locked?"#746170":"#5be3c0",
+      locked?"#4b3e58":"#dae5ff"));
+  ctx.lineWidth=9;ctx.strokeStyle="#e5c789";
+  ctx.beginPath();ctx.moveTo(-38,0);ctx.lineTo(-38,-76);
+  ctx.arc(0,-76,38,Math.PI,0);ctx.lineTo(38,0);ctx.stroke();
+  round(ctx,-51,-6,102,13,5,"#ecd8a5");
+
+  for(let i=0;i<5;i++){
+    const y=-15-((world.t*35+i*19)%80);
+    star(ctx,Math.sin(i*8+world.t)*17,y,3,"#ffffffa0",world.t);
+  }
+  star(ctx,0,-126,14,locked?"#bd9d99":"#fff0a3",world.t*.2);
+  ctx.fillStyle="#fff9e6";ctx.font="bold 12px system-ui";ctx.textAlign="center";
+  ctx.fillText(locked?"GUARDIAN":"FINISH",0,-151);
+  ctx.restore();
+}
+
+function drawBoss(){
+  const b=world.boss;if(!b||b.hp<=0)return;
+  ctx.save();ctx.translate(b.x+b.w/2,b.y+b.h);
+  if(b.inv>0&&Math.floor(world.t*18)%2)ctx.globalAlpha=.6;
+  const charging=b.mode==="charge";
+  const scaleY=charging?.88:1;
+  ctx.scale(1,scaleY);
+  ellipse(ctx,0,0,61,12,"#281d3938");
+  ellipse(ctx,-31,-1,24,12,"#5d516c");
+  ellipse(ctx,31,-1,24,12,"#5d516c");
+  ctx.beginPath();ctx.moveTo(-58,-12);
+  ctx.bezierCurveTo(-65,-106,-27,-105,0,-99);
+  ctx.bezierCurveTo(42,-112,66,-71,57,-12);
+  ctx.quadraticCurveTo(4,13,-58,-12);
+  ctx.fillStyle=gradient(ctx,-55,-105,100,110,"#b89baa","#5a4d69");ctx.fill();
+
+  // Stone plates and glowing seams.
+  ctx.strokeStyle=charging?"#fff2ad":"#e9b994";ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(-20,-96);ctx.lineTo(-9,-72);
+  ctx.lineTo(-18,-51);ctx.moveTo(32,-87);ctx.lineTo(18,-66);
+  ctx.lineTo(25,-47);ctx.stroke();
+
+  crystal(ctx,-34,-82,27,"#e8b898");
+  crystal(ctx,2,-97,35,"#f5d2a3");
+  crystal(ctx,33,-82,24,"#e8b898");
+
+  for(let side of [-1,1]){
+    ellipse(ctx,side*22,-52,13,16,"#fce9cc");
+    ellipse(ctx,side*22,-50,6,9,charging?"#a45969":"#485775");
+    ellipse(ctx,side*22+2,-55,2,3,"#fff");
+  }
+  ellipse(ctx,0,-31,8,6,"#796074");
+  ctx.strokeStyle="#ecd0be";ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(-13,-19);ctx.quadraticCurveTo(0,-11,13,-19);ctx.stroke();
+
+  if(charging){
+    ctx.fillStyle="#fff2a4";ctx.font="bold 25px system-ui";ctx.textAlign="center";
+    ctx.fillText("!",0,-139);
+    ellipse(ctx,0,4,68+Math.sin(world.t*18)*5,6,"#ffd38b88");
+  }
+  ctx.restore();
+
+  round(ctx,b.x-4,b.y-35,120,9,5,"#342f4c");
+  round(ctx,b.x-2,b.y-33,116*b.hp/b.maxHp,5,3,"#ffbb9b");
+  ctx.font="bold 11px system-ui";ctx.textAlign="center";ctx.fillStyle="#fff0d4";
+  ctx.fillText("ผู้พิทักษ์ลาวา  "+b.hp+"/"+b.maxHp,b.x+b.w/2,b.y-44);
+}
+
+function drawPlayer(){
+  const p=player;
+  if(!p)return;
+  const pose=p.hurt>0?"hurt":
+    !p.grounded?(p.vy<0?"jump":"fall"):
+    Math.abs(p.vx)>15?"run":"idle";
+  const frame=Math.floor(p.anim)%8;
+  const x=p.x+p.w/2,y=p.y+p.h;
+  if(p.grounded)ellipse(ctx,x,y+2,22,5,"#1c384235");
+  ctx.save();
+  ctx.translate(x,y);
+  if(p.inv>0&&Math.floor(world.t*15)%2===0)ctx.globalAlpha=.45;
+  ctx.scale(p.face,1);
+  ctx.drawImage(sprites[pose][frame],-36,-76,72,84);
+  ctx.restore();
+
+  if(p.shield>0){
+    ctx.save();
+    const glow=ctx.createRadialGradient(x,p.y+23,17,x,p.y+23,43);
+    glow.addColorStop(0,"#9dfbff00");
+    glow.addColorStop(.85,"#8cecff28");glow.addColorStop(1,"#cfffff88");
+    ellipse(ctx,x,p.y+23,39,43,glow);
+    ctx.strokeStyle="#c8ffffb0";ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.ellipse(x,p.y+23,39,43,0,0,Math.PI*2);ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawWorld(){
+  const t=world.theme;
+  backdrop(ctx,t,camera,world.t);
+  ctx.save();
+  const shake=state==="play"?screenShake*18:0;
+  ctx.translate(-Math.floor(camera)+(Math.random()-.5)*shake,
+    (Math.random()-.5)*shake);
+
+  // Ambient motes.
+  for(let i=0;i<24;i++){
+    const x=i*231+Math.sin(world.t*.6+i)*35;
+    if(x<camera-20||x>camera+W+20)continue;
+    const y=145+(i*73)%250+Math.sin(world.t+i)*15;
+    ellipse(ctx,x,y,2,2,t.accent+"77");
+  }
+
+  for(const s of world.solids){
+    if(s.x+s.w<camera-80||s.x>camera+W+80)continue;
+    drawSolid(s,t);
+  }
+  for(const h of world.hazards){
+    if(h.x>camera-80&&h.x<camera+W+80)drawHazard(h);
+  }
+  for(const s of world.springs)drawSpring(s);
+
+  drawCheckpoint();drawGoal();
+
+  // Signboards are environmental graphics, never player stand-ins.
+  if(camera<360){
+    round(ctx,178,371,7,60,3,"#927451");
+    round(ctx,130,336,110,46,10,"#eac68b","#8c7755");
+    ctx.fillStyle="#604c42";ctx.textAlign="center";
+    ctx.font="bold 12px system-ui";ctx.fillText("HOLD JUMP ↑",185,356);
+    ctx.font="10px system-ui";ctx.fillText("กดค้างเพื่อขึ้นสูง",185,372);
+  }
+  for(const i of world.items){
+    if(i.x>camera-50&&i.x<camera+W+50)drawItem(i);
+  }
+  for(const e of world.enemies){
+    if(e.alive&&e.x>camera-80&&e.x<camera+W+80)drawEnemy(e);
+  }
+  drawBoss();
+  for(const wave of world.waves){
+    const x=wave.x+wave.w/2;
+    ellipse(ctx,x,wave.y+8,26,9,"#ffdb9688");
+    ctx.strokeStyle="#ffe9b4";ctx.lineWidth=3;
+    ctx.beginPath();ctx.ellipse(x,wave.y+7,25,9,0,Math.PI,Math.PI*2);ctx.stroke();
+  }
+  drawPlayer();
+
+  for(const p of world.particles){
+    ctx.globalAlpha=clamp(p.life/p.max,0,1);
+    ellipse(ctx,p.x,p.y,p.size,p.size,p.color);
+  }
+  ctx.globalAlpha=1;
+  for(const f of world.texts){
+    ctx.globalAlpha=clamp(f.life*2,0,1);
+    ctx.font="bold 15px system-ui";ctx.textAlign="center";
+    ctx.lineWidth=3;ctx.strokeStyle="#203448aa";
+    ctx.strokeText(f.text,f.x,f.y);ctx.fillStyle=f.color;
+    ctx.fillText(f.text,f.x,f.y);
+  }
+  ctx.globalAlpha=1;
+  ctx.restore();
+
+  // Progress ribbon.
+  const progress=clamp(player.x/(world.goal.x),0,1);
+  round(ctx,350,515,260,5,3,"#12334845");
+  round(ctx,350,515,Math.max(5,260*progress),5,3,"#fff0b8");
+  ellipse(ctx,350+260*progress,517,4,4,"#ffffff");
+}
+
+function updatePresentation(dt){
+  menuTime+=dt;
+  // UI notifications also pause with gameplay.
+  if(state!=="pause"&&toastTime>0){
+    toastTime-=dt;
+    if(toastTime<=0)$("toast").classList.remove("show");
+  }
+  transitionAlpha=Math.max(0,transitionAlpha-dt*2.4);
+  $("transition").style.opacity=transitionAlpha;
+
+  if(state==="win"){
+    fireworkClock-=dt;
+    if(fireworkClock<=0){
+      fireworkClock=.55;
+      const x=80+Math.random()*800,y=40+Math.random()*190;
+      const color=["#ffe393","#a4fff0","#ffc8e1","#c3c6ff"][Math.floor(Math.random()*4)];
+      for(let i=0;i<34;i++){
+        const a=i/34*Math.PI*2,s=55+Math.random()*115;
+        fireworks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
+          life:1.5,color});
+      }
+    }
+    for(const f of fireworks){
+      f.life-=dt;f.x+=f.vx*dt;f.y+=f.vy*dt;f.vy+=65*dt;
+    }
+    fireworks=fireworks.filter(f=>f.life>0);
+  }
+}
+
+function render(){
+  ctx.clearRect(0,0,W,H);
+  if(world){
+    drawWorld();
+  }else{
+    backdrop(ctx,THEMES[0],menuTime*18,menuTime);
+    // Decorative original hero behind title screen.
+    ctx.save();ctx.globalAlpha=.9;
+    ctx.drawImage(sprites.idle[Math.floor(menuTime*5)%8],72,306,144,168);
+    ctx.restore();
+    for(let i=0;i<9;i++){
+      star(ctx,76+i*106,125+Math.sin(menuTime+i)*35,4,"#fff5c699",menuTime*.3);
+    }
+  }
+  if(state==="win"){
+    for(const f of fireworks){
+      ctx.globalAlpha=clamp(f.life,0,1);
+      star(ctx,f.x,f.y,4,f.color,f.life);
+    }
+    ctx.globalAlpha=1;
+  }
+}
+
+/* -------------------- lightweight startup checks --------------------
+   These check data and geometry on load, not full browser play-testing.
+   ------------------------------------------------------------------ */
+
+function startupChecks(){
+  const errors=[];
+  if(!overlap({x:0,y:0,w:10,h:10},{x:9,y:9,w:2,h:2}))
+    errors.push("AABB overlap failed");
+  if(overlap({x:0,y:0,w:10,h:10},{x:10,y:0,w:2,h:2}))
+    errors.push("AABB edge separation failed");
+
+  for(let i=0;i<5;i++){
+    const w=makeWorld(i);
+    if(!w.solids.some(s=>s.type==="ground"&&
+      w.spawn.x>=s.x&&w.spawn.x+34<=s.x+s.w))
+      errors.push("Invalid spawn: "+i);
+    if(!w.items.some(it=>it.type==="coin")||!w.items.some(it=>it.type==="gem"))
+      errors.push("Missing collectibles: "+i);
+    if(!w.solids.some(s=>s.type==="ground"&&
+      w.goal.x>=s.x&&w.goal.x+w.goal.w<=s.x+s.w))
+      errors.push("Invalid goal: "+i);
+    if(i===4&&!w.boss)errors.push("Missing final boss");
+  }
+  if(errors.length)console.error("Startup checks:",errors);
+  else console.info("Startup data/geometry checks passed. Manual gameplay QA is still required.");
+}
+startupChecks();
+
+/* -------------------- fixed timestep + requestAnimationFrame -------------------- */
+
+const STEP=1/120;
+let lastTime=null, accumulator=0;
+function frame(timestamp){
+  if(lastTime===null)lastTime=timestamp;
+  const dt=Math.min((timestamp-lastTime)/1000,.1);
+  lastTime=timestamp;
+
+  if(state==="play"){
+    accumulator+=dt;
+    let steps=0;
+    while(accumulator>=STEP&&steps<12){
+      update(STEP);
+      accumulator-=STEP;
+      steps++;
+      if(state!=="play"){accumulator=0;break;}
+    }
+  }else{
+    accumulator=0;
+  }
+  updatePresentation(dt);
+  render();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
