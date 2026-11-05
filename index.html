@@ -736,8 +736,44 @@ const THEMES = [
     far:"#704556", tree:"#55404f", leaf:"#ee9e78",
     top:"#ba8e86", dirt:"#695160", deep:"#332b40",
     accent:"#ffc36b", enemy:"#a78690", kind:"lava"
+  },
+  {
+    name:"Spooky Swamp", thai:"บึงลึกลับ",
+    sky:["#231934","#423158"], mountain:"#4a3b5c",
+    far:"#362a46", tree:"#271e33", leaf:"#7a9a60",
+    top:"#527052", dirt:"#3b323d", deep:"#211a24",
+    accent:"#b5ff7c", enemy:"#8ab368", kind:"swamp"
+  },
+  {
+    name:"Clockwork Factory", thai:"โรงงานจักรกล",
+    sky:["#3d2f24","#6b533f"], mountain:"#594331",
+    far:"#473323", tree:"#332317", leaf:"#d99e59",
+    top:"#b87d3f", dirt:"#47382d", deep:"#241b14",
+    accent:"#ffe27c", enemy:"#c98949", kind:"factory"
+  },
+  {
+    name:"Golden Pyramid", thai:"พีระมิดโบราณ",
+    sky:["#c77d32","#ffe091"], mountain:"#b87937",
+    far:"#a16327", tree:"#854e1b", leaf:"#ffd15c",
+    top:"#f7dc94", dirt:"#875c32", deep:"#4a3017",
+    accent:"#fff4bd", enemy:"#db9f44", kind:"pyramid"
+  },
+  {
+    name:"Frosty Glacier", thai:"ธารน้ำแข็ง",
+    sky:["#254b73","#70a3db"], mountain:"#4c79ad", far:"#3b628f",
+    tree:"#2a496e", leaf:"#b8ecff", top:"#e1f5ff", dirt:"#406182",
+    deep:"#213447", accent:"#ffffff", enemy:"#91ccff", kind:"glacier"
+  },
+  {
+    name:"Shadow Void", thai:"มิติเงามืด",
+    sky:["#0b041a","#29134a"], mountain:"#24123b",
+    far:"#1a0c2e", tree:"#120721", leaf:"#c47bff",
+    top:"#e3b8ff", dirt:"#261536", deep:"#0e0417",
+    accent:"#ff8cf8", enemy:"#ad66db", kind:"void"
   }
 ];
+
+
 
 let state = "home";
 let world = null;
@@ -755,10 +791,11 @@ let fireworkClock = 0;
 const STORAGE_KEY = "lumi.super-adventure.v1";
 let save = {
   unlocked:1,
-  best:[0,0,0,0,0],
-  stars:[0,0,0,0,0],
+  best:Array(10).fill(0),
+  stars:Array(10).fill(0),
   sound:true
 };
+
 let storageAvailable = true;
 try {
   const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
@@ -1275,23 +1312,24 @@ function makeWorld(index){
     hazards.push({x,y:FLOOR-19,w:46+index*3,h:19});
   }
 
-  const boss=index===4?{
-    x:4850,y:FLOOR-98,w:112,h:98,
-    vx:0,vy:0,hp:5,maxHp:5,mode:"idle",
-    timer:1.6,inv:0,grounded:true
-  }:null;
+  // ค้นหาโค้ดส่วนนี้ใน makeWorld(index) แล้วแทนที่:
+const boss = index === 9 ? {
+  x:4850, y:FLOOR-98, w:112, h:98,
+  vx:0, vy:0, hp:8, maxHp:8, mode:"idle",
+  timer:1.4, inv:0, grounded:true
+}:null;
 
-  return {
-    theme:t,index,width:WORLD_WIDTH,solids,items,enemies,hazards,springs,boss,
-    waves:[],particles:[],texts:[],
-    checkpoint:{x:2240,y:FLOOR,active:false},
-    goal:{x:5090,y:FLOOR-132,w:60,h:132},
-    spawn:{x:90,y:FLOOR-52},
-    score:0,coins:0,hearts:3,elapsed:0,timeLimit:180-index*10,
-    t:0,collected:0,
-    totalCollect:items.filter(i=>["coin","gem","star","chest"].includes(i.type)).length,
-    secretFound:false,gateNotice:0
-  };
+return {
+  theme:t, index, width:WORLD_WIDTH, solids, items, enemies, hazards, springs, boss,
+  waves:[], particles:[], texts:[],
+  checkpoint:{x:2240, y:FLOOR, active:false},
+  goal:{x:5090, y:FLOOR-132, w:60, h:132},
+  spawn:{x:90, y:FLOOR-52},
+  score:0, coins:0, hearts:3, elapsed:0, timeLimit:180-index*5, // ปรับลดเวลาลงทีละนิดตามความยาก
+  t:0, collected:0,
+  totalCollect:items.filter(i=>["coin","gem","star","chest"].includes(i.type)).length,
+  secretFound:false, gateNotice:0
+};
 }
 
 function startLevel(index){
@@ -1383,14 +1421,18 @@ function finishLevel(){
     (ratio>=.72&&world.hearts>=2&&world.elapsed<world.timeLimit*.8?1:0);
   const bonus=world.hearts*250+Math.floor(world.timeLimit-world.elapsed)*10;
   world.score+=bonus;
-  save.unlocked=Math.max(save.unlocked,Math.min(5,levelIndex+2));
+  
+  // เปลี่ยนจากเลข 5 เป็น 10 ด่าน
+  save.unlocked=Math.max(save.unlocked,Math.min(10,levelIndex+2));
   save.best[levelIndex]=Math.max(save.best[levelIndex],world.score);
   save.stars[levelIndex]=Math.max(save.stars[levelIndex],stars);
   persist();
 
   state="win";showScreen("result");$("touch").hidden=true;
-  $("resultKicker").textContent=levelIndex===4?"ALL WORLDS COMPLETE":"TREASURE TRAIL COMPLETE";
-  $("resultTitle").textContent=levelIndex===4?"พิชิตโลกทั้งห้า!":"ผ่านด่านแล้ว!";
+  
+  // เปลี่ยนเงื่อนไขตรวจสอบด่านสุดท้ายเป็น index === 9 (ด่านที่ 10)
+  $("resultKicker").textContent=levelIndex===9?"ALL WORLDS COMPLETE":"TREASURE TRAIL COMPLETE";
+  $("resultTitle").textContent=levelIndex===9?"พิชิตโลกทั้งสิบ!":"ผ่านด่านแล้ว!";
   $("resultStars").textContent="★".repeat(stars)+"☆".repeat(3-stars);
   $("resultText").textContent=
     world.theme.name+"\nคะแนน "+world.score.toLocaleString()+
@@ -1398,9 +1440,10 @@ function finishLevel(){
     "\nเก็บสมบัติ "+Math.round(ratio*100)+"% · โบนัส "+bonus.toLocaleString()+
     "\nสถิติสูงสุด "+save.best[levelIndex].toLocaleString();
   $("nextBtn").hidden=false;
-  $("nextBtn").textContent=levelIndex===4?"กลับแผนที่":"ด่านถัดไป";
+  $("nextBtn").textContent=levelIndex===9?"กลับแผนที่":"ด่านถัดไป";
   sfx("win");fireworkClock=0;updateHUD();
 }
+
 function gameOver(reason){
   if(state!=="play")return;
   save.best[levelIndex]=Math.max(save.best[levelIndex],world.score);
@@ -1425,7 +1468,7 @@ $("pauseRestart").onclick=()=>startLevel(levelIndex);
 $("pauseHome").onclick=home;
 $("retryBtn").onclick=()=>startLevel(levelIndex);
 $("resultMap").onclick=levelSelect;
-$("nextBtn").onclick=()=>levelIndex===4?levelSelect():startLevel(levelIndex+1);
+$("nextBtn").onclick=()=>levelIndex===9?levelSelect():startLevel(levelIndex+1);
 $("soundBtn").onclick=()=>{
   save.sound=!save.sound;persist();updateSoundButton();
   if(save.sound&&state==="play")prepareAudio();else quietAudio();
