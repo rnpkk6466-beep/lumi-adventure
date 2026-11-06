@@ -1422,7 +1422,6 @@ function finishLevel(){
   const bonus=world.hearts*250+Math.floor(world.timeLimit-world.elapsed)*10;
   world.score+=bonus;
   
-  // เปลี่ยนจากเลข 5 เป็น 10 ด่าน
   save.unlocked=Math.max(save.unlocked,Math.min(10,levelIndex+2));
   save.best[levelIndex]=Math.max(save.best[levelIndex],world.score);
   save.stars[levelIndex]=Math.max(save.stars[levelIndex],stars);
@@ -1430,7 +1429,7 @@ function finishLevel(){
 
   state="win";showScreen("result");$("touch").hidden=true;
   
-  // เปลี่ยนเงื่อนไขตรวจสอบด่านสุดท้ายเป็น index === 9 (ด่านที่ 10)
+  // ใช้เลข 9 สำหรับด่านที่ 10 (ด่านสุดท้ายจริง ๆ)
   $("resultKicker").textContent=levelIndex===9?"ALL WORLDS COMPLETE":"TREASURE TRAIL COMPLETE";
   $("resultTitle").textContent=levelIndex===9?"พิชิตโลกทั้งสิบ!":"ผ่านด่านแล้ว!";
   $("resultStars").textContent="★".repeat(stars)+"☆".repeat(3-stars);
@@ -1442,9 +1441,9 @@ function finishLevel(){
   $("nextBtn").hidden=false;
   $("nextBtn").textContent=levelIndex===9?"กลับแผนที่":"ด่านถัดไป";
   sfx("win");fireworkClock=0;updateHUD();
-}
+ }
 
-function gameOver(reason){
+ function gameOver(reason){
   if(state!=="play")return;
   save.best[levelIndex]=Math.max(save.best[levelIndex],world.score);
   persist();state="over";
@@ -1468,7 +1467,7 @@ $("pauseRestart").onclick=()=>startLevel(levelIndex);
 $("pauseHome").onclick=home;
 $("retryBtn").onclick=()=>startLevel(levelIndex);
 $("resultMap").onclick=levelSelect;
-$("nextBtn").onclick=()=>levelIndex===9?levelSelect():startLevel(levelIndex+1);
+$("nextBtn").onclick = () => levelIndex === 9 ? levelSelect() : startLevel(levelIndex + 1);
 $("soundBtn").onclick=()=>{
   save.sound=!save.sound;persist();updateSoundButton();
   if(save.sound&&state==="play")prepareAudio();else quietAudio();
